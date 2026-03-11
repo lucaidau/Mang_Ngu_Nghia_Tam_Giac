@@ -1,5 +1,5 @@
-import math
 from .quanLiDoThi import QuanLiDoThi
+import math
 
 class Rules:
     def __init__(self, qldt: QuanLiDoThi):
@@ -12,15 +12,15 @@ class Rules:
             so_not_cu = len(self.quan_li_do_thi.lay_do_thi().nodes)
             so_canh_cu = len(self.quan_li_do_thi.lay_do_thi().edges)
  
-            self.tong3goc,
-            self.pytago,
-            self.heron,
-            self.dinh_ly_sin,
-            self.dinh_ly_cos,
-            self.chu_vi,
-            self.duong_trung_tuyen,
-            self.tam_giac_can,
-            self.tam_giac_deu,
+            self.tong3goc()
+            self.pytago()
+            self.heron()
+            self.dinh_ly_sin()
+            self.dinh_ly_cos()
+            self.chu_vi()
+            self.duong_trung_tuyen()
+            self.tam_giac_can()
+            self.tam_giac_deu()
             
             # Thêm các công thức khác vào đây   
 
@@ -30,6 +30,7 @@ class Rules:
             if so_not_cu == so_not_moi and so_canh_cu == so_canh_moi:
                 has_changed = False
         
+
     """Các luật và  công thức"""
 
     def tong3goc(self):
@@ -173,3 +174,4 @@ class Rules:
             v.them_Doi_Tuong("C", "goc", {"gia_tri": v.get("C"), "cong_thuc": "Công thức Tam Giác Cân"})
             return True
         print("Đã áp dụng công thức Tam Giác Cân")
+    
