@@ -22,6 +22,13 @@ class Rules:
             self.duong_trung_tuyen,
             self.tam_giac_can,
             self.tam_giac_deu,
+            self.dien_tich_ngoai_tiep,
+            self.dien_tich_noi_tiep,
+            self.dien_tich_sin_goc,
+            self.duong_cao,
+            self.duong_phan_giac,
+            self.ti_le_phan_giac,
+    
             
             # Thêm các công thức khác vào đây   
 
