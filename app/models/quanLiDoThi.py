@@ -6,7 +6,7 @@ class QuanLiDoThi:
         self.G = nx.Graph()
 
     # --- CREATE ---
-    def them_node(self, ten, loai, thuoc_tinh=None):
+    def them_Doi_Tuong(self, ten, loai, thuoc_tinh=None):
         if thuoc_tinh == None:
             thuoc_tinh = {}
         self.G.add_node(ten, loai=loai, **thuoc_tinh)
@@ -21,7 +21,7 @@ class QuanLiDoThi:
     def lay_do_thi(self):
         return self.G
 
-    def lay_gia_tri_node(self, ten_doi_tuong):
+    def get(self, ten_doi_tuong):
         if self.G.has_node(ten_doi_tuong):
             return self.G.nodes[ten_doi_tuong].get("gia_tri")
         return None
