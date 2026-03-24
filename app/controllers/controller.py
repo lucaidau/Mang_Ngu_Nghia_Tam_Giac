@@ -3,7 +3,7 @@ from ..views.giaoDienChinh import GiaoDienChinh
 from ..models.congThuc import Rules
 
 
-class GeometryController:
+class Controller:
     def __init__(self, view: GiaoDienChinh = None):
         """
         Khởi tạo controller.
@@ -148,7 +148,7 @@ class GeometryController:
 
 # --- Test nhanh (console) ---
 if __name__ == "__main__":
-    controller = GeometryController()
+    controller = Controller()
 
     # Ví dụ dữ liệu từ người dùng
     du_lieu = {
