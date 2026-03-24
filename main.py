@@ -7,8 +7,12 @@ from app.controllers.controller import Controller
 def main():
     root = tk.Tk()
     app_model = QuanLiDoThi()
-    app_view = GiaoDienChinh(root)
-    app_controller = Controller(model=app_model, view=app_view)
+
+    app_view = GiaoDienChinh(root, controller=None)
+
+    app_controller = Controller(view=app_view)
+    app_view.controller = app_controller
+    app_controller.qldt = app_model
 
     root.mainloop()
 
