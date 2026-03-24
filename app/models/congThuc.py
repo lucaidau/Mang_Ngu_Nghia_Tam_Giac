@@ -6,39 +6,53 @@ import math
 class Rules:
     def __init__(self, qldt: QuanLiDoThi):
         self.quan_li_do_thi = qldt
+        self.error = []
 
     def execute_alt(self):
         has_changed = True
+        if (self.kiem_tra_bat_dang_thuc_tam_giac()):
 
-        while has_changed:
-            so_not_cu = len(self.quan_li_do_thi.lay_do_thi().nodes)
-            so_canh_cu = len(self.quan_li_do_thi.lay_do_thi().edges)
+            while has_changed:
+                so_not_cu = len(self.quan_li_do_thi.lay_do_thi().nodes)
+                so_canh_cu = len(self.quan_li_do_thi.lay_do_thi().edges)
 
-            self.tong3goc(),
-            self.chu_vi(),
-            self.heron(),
-            self.pytago(),
-            self.dinh_ly_sin(),
-            self.dinh_ly_cos(),
-            self.duong_trung_tuyen(),
-            self.tam_giac_can(),
-            # self.tam_giac_deu(),
-            self.dien_tich_ngoai_tiep(),
-            self.dien_tich_noi_tiep(),
-            self.dien_tich_sin_goc(),
-            self.duong_cao(),
-            self.duong_phan_giac(),
-            self.ti_le_phan_giac(),
+                self.tong3goc(),
+                self.chu_vi(),
+                self.heron(),
+                self.pytago(),
+                self.dinh_ly_sin(),
+                self.dinh_ly_cos(),
+                self.duong_trung_tuyen(),
+                self.tam_giac_can(),
+                self.tam_giac_deu(),
+                self.dien_tich_ngoai_tiep(),
+                self.dien_tich_noi_tiep(),
+                self.dien_tich_sin_goc(),
+                self.duong_cao(),
+                self.duong_phan_giac(),
+                self.ti_le_phan_giac(),
 
-            # Thêm các công thức khác vào đây
+                # Thêm các công thức khác vào đây
 
-            so_not_moi = len(self.quan_li_do_thi.lay_do_thi().nodes)
-            so_canh_moi = len(self.quan_li_do_thi.lay_do_thi().edges)
+                so_not_moi = len(self.quan_li_do_thi.lay_do_thi().nodes)
+                so_canh_moi = len(self.quan_li_do_thi.lay_do_thi().edges)
 
-            if so_not_cu == so_not_moi and so_canh_cu == so_canh_moi:
-                has_changed = False
+                if so_not_cu == so_not_moi and so_canh_cu == so_canh_moi:
+                    has_changed = False
 
-    """Các luật và  công thức"""
+            else: 
+                self.error.append("Đây không phải là 1 tam giác")
+
+    """Các luật và công thức"""
+    def kiem_tra_bat_dang_thuc_tam_giac(self):
+        v = self.quan_li_do_thi
+        a, b, c = v.get("a"), v.get("b"), v.get("c")
+
+        if a and b and c:
+            if not (a + b > c and a + c > b and b + c > a):
+                self.errors.append(f"Vi phạm bất đẳng thức tam giác: {a}, {b}, {c} không thể tạo thành tam giác.")
+                return False
+        return True
 
     def tong3goc(self):
         """A + B + C = 180 độ"""
@@ -110,6 +124,18 @@ class Rules:
                 "c", "canh", {"gia_tri": v.get("c"), "cong_thuc": "Định lý Pytago"}
             )
             return True
+        if a and c and not b:
+            v.set("b", math.sqrt(c**2 - a**2), "Định lý Pytago")
+            v.them_Doi_Tuong(
+                "b", "canh", {"gia_tri": v.get("b"), "cong_thuc": "Định lý Pytago"}
+            )
+            return True
+        if b and c and not a:
+            v.set("a", math.sqrt(c**2 - b**2), "Định lý Pytago")
+            v.them_Doi_Tuong(
+                "a", "canh", {"gia_tri": v.get("a"), "cong_thuc": "Định lý Pytago"}
+            )
+            return True
 
         print("Đã áp dụng định lý Pytago")
 
@@ -117,9 +143,25 @@ class Rules:
         """a/sinA = 2R"""
         v = self.quan_li_do_thi
         a, A, R = v.get("a"), v.get("A"), v.get("R")
+        b, B = v.get("b"), v.get("B")
+        c, C = v.get("c"), v.get("C")
 
         if a and A and not R:
             R_value = a / (2 * math.sin(math.radians(A)))
+            v.set("R", R_value, "Định lý Sin")
+            v.them_Doi_Tuong(
+                "R", "ban_kinh", {"gia_tri": R_value, "cong_thuc": "Định lý Sin"}
+            )
+            return True
+        if b and B and not R:
+            R_value = b / (2 * math.sin(math.radians(B)))
+            v.set("R", R_value, "Định lý Sin")
+            v.them_Doi_Tuong(
+                "R", "ban_kinh", {"gia_tri": R_value, "cong_thuc": "Định lý Sin"}
+            )
+            return True
+        if c and C and not R:
+            R_value = c / (2 * math.sin(math.radians(C)))
             v.set("R", R_value, "Định lý Sin")
             v.them_Doi_Tuong(
                 "R", "ban_kinh", {"gia_tri": R_value, "cong_thuc": "Định lý Sin"}
@@ -249,33 +291,41 @@ class Rules:
             elif v.get("B") and not v.get("A"):
                 v.set("A", v.get("B"))
                 changed = True
+        print("Đã áp dụng công thức tam giác cân")
 
-    # def tam_giac_deu(self):
-    #     v = self.quan_li_do_thi
-    #     changed = False
+    def tam_giac_deu(self):
+        v = self.quan_li_do_thi
+        changed = False
 
-    #     for goc in ["A", "B", "C"]:
-    #         if not v.get(goc):
-    #             v.set(goc, 60)
-    #             v.them_Doi_Tuong(
-    #                 goc, "goc", {"gia_tri": 60, "cong_thuc": "Tính chất tam giác đều"}
-    #             )
-    #             changed = True
+        for goc in ["A", "B", "C"]:
+            val = v.get(goc)
+            if val is not None and round(val, 2) != 60.0:
+                self.errors.append(f"Mâu thuẫn: Tam giác đều nhưng góc {goc}={val} (phải là 60).")
+                return False
+            
+        ds_canh = ["a", "b", "c"]
+        canh_da_biet = [v.get(c) for c in ds_canh if v.get(c) is not None]
+        
+        if len(canh_da_biet) > 1:
+            if not all(round(x, 2) == round(canh_da_biet[0], 2) for x in canh_da_biet):
+                self.errors.append("Mâu thuẫn: Tam giác đều nhưng các cạnh nhập vào không bằng nhau.")
+                return False
 
-    #     canh_da_biet = v.get("a") or v.get("b") or v.get("c")
-    #     if canh_da_biet:
-    #         for c in ["a", "b", "c"]:
-    #             if not v.get(c):
-    #                 v.set(c, canh_da_biet)
-    #                 v.them_Doi_Tuong(
-    #                     c,
-    #                     "canh",
-    #                     {
-    #                         "gia_tri": canh_da_biet,
-    #                         "cong_thuc": "Tính chất tam giác đều",
-    #                     },
-    #                 )
-    #                 changed = True
+        for goc in ["A", "B", "C"]:
+            if not v.get(goc):
+                v.set(goc, 60)
+                v.them_Doi_Tuong(goc, "goc", {"gia_tri": 60, "cong_thuc": "Tính chất tam giác đều"})
+                changed = True
+        
+        if canh_da_biet:
+            val_chuan = canh_da_biet[0]
+            for c in ds_canh:
+                if not v.get(c):
+                    v.set(c, val_chuan)
+                    v.them_Doi_Tuong(c, "canh", {"gia_tri": val_chuan, "cong_thuc": "Tính chất tam giác đều"})
+                    changed = True
+        return changed
+    print("Đã áp dụng công thức tam giác đều")
 
     # Diện tích qua bán kính đường tròn ngoại tiếp R: S = (abc) / (4R)
     def dien_tich_ngoai_tiep(self):
@@ -295,6 +345,7 @@ class Rules:
                 "S", "dien_tich", {"gia_tri": S_val, "cong_thuc": "S = abc/4R"}
             )
             return True
+        print("Đã áp dụng công thức diện tích ngoại tiếp")
 
     # Diện tích qua bán kính nội tiếp r: S = p * r
     def dien_tich_noi_tiep(self):
@@ -316,6 +367,7 @@ class Rules:
                     "r", "ban_kinh_noi", {"gia_tri": r_val, "cong_thuc": "S = p*r"}
                 )
                 return True
+        print("Đã áp dụng công thức diện tích nội tiếp")
 
     # Diện tích qua 2 cạnh và góc xen giữa: S = 0.5 * a * b * sin(C)
     def dien_tich_sin_goc(self):
@@ -328,6 +380,7 @@ class Rules:
                 "S", "dien_tich", {"gia_tri": S_val, "cong_thuc": "S = 1/2*ab*sinC"}
             )
             return True
+        print("Đã áp dụng công thức diện tích sin góc")
 
     # Đường cao: h_a = 2S / a
     def duong_cao(self):
@@ -340,6 +393,7 @@ class Rules:
                 "h_a", "duong_cao", {"gia_tri": ha_val, "cong_thuc": "h = 2S/a"}
             )
             return True
+        print("Đã áp dụng công thức đường cao")
 
     # Đường phân giác trong: l_a = (2bc * cos(A/2)) / (b+c)
     def duong_phan_giac(self):
@@ -354,6 +408,7 @@ class Rules:
                 {"gia_tri": la_val, "cong_thuc": "Công thức phân giác"},
             )
             return True
+        print("Đã áp dụng công thức đường phân giác")
 
     # Tính chất đường phân giác (tỉ lệ đoạn thẳng trên cạnh đáy d_b, d_c)
     def ti_le_phan_giac(self):
