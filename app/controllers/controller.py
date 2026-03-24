@@ -29,6 +29,7 @@ class GeometryController:
 
         print("--- Đang nạp dữ liệu đầu vào ---")
         for key, value in data_dict.items():
+            print(f"key: {key}, value: {value}")
             if value is None or value == "":
                 continue
 

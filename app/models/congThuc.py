@@ -22,7 +22,7 @@ class Rules:
             self.dinh_ly_cos(),
             self.duong_trung_tuyen(),
             self.tam_giac_can(),
-            self.tam_giac_deu(),
+            # self.tam_giac_deu(),
             self.dien_tich_ngoai_tiep(),
             self.dien_tich_noi_tiep(),
             self.dien_tich_sin_goc(),
@@ -110,6 +110,7 @@ class Rules:
                 "c", "canh", {"gia_tri": v.get("c"), "cong_thuc": "Định lý Pytago"}
             )
             return True
+
         print("Đã áp dụng định lý Pytago")
 
     def dinh_ly_sin(self):
@@ -249,32 +250,32 @@ class Rules:
                 v.set("A", v.get("B"))
                 changed = True
 
-    def tam_giac_deu(self):
-        v = self.quan_li_do_thi
-        changed = False
+    # def tam_giac_deu(self):
+    #     v = self.quan_li_do_thi
+    #     changed = False
 
-        for goc in ["A", "B", "C"]:
-            if not v.get(goc):
-                v.set(goc, 60)
-                v.them_Doi_Tuong(
-                    goc, "goc", {"gia_tri": 60, "cong_thuc": "Tính chất tam giác đều"}
-                )
-                changed = True
+    #     for goc in ["A", "B", "C"]:
+    #         if not v.get(goc):
+    #             v.set(goc, 60)
+    #             v.them_Doi_Tuong(
+    #                 goc, "goc", {"gia_tri": 60, "cong_thuc": "Tính chất tam giác đều"}
+    #             )
+    #             changed = True
 
-        canh_da_biet = v.get("a") or v.get("b") or v.get("c")
-        if canh_da_biet:
-            for c in ["a", "b", "c"]:
-                if not v.get(c):
-                    v.set(c, canh_da_biet)
-                    v.them_Doi_Tuong(
-                        c,
-                        "canh",
-                        {
-                            "gia_tri": canh_da_biet,
-                            "cong_thuc": "Tính chất tam giác đều",
-                        },
-                    )
-                    changed = True
+    #     canh_da_biet = v.get("a") or v.get("b") or v.get("c")
+    #     if canh_da_biet:
+    #         for c in ["a", "b", "c"]:
+    #             if not v.get(c):
+    #                 v.set(c, canh_da_biet)
+    #                 v.them_Doi_Tuong(
+    #                     c,
+    #                     "canh",
+    #                     {
+    #                         "gia_tri": canh_da_biet,
+    #                         "cong_thuc": "Tính chất tam giác đều",
+    #                     },
+    #                 )
+    #                 changed = True
 
     # Diện tích qua bán kính đường tròn ngoại tiếp R: S = (abc) / (4R)
     def dien_tich_ngoai_tiep(self):
