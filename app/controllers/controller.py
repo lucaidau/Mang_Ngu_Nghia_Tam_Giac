@@ -40,21 +40,22 @@ class Controller:
                 continue
 
             # Xác định loại đối tượng dựa trên quy ước tên biến
-            if key in ['a', 'b', 'c']:
+            if key in ["a", "b", "c"]:
                 loai = "canh"
-            elif key in ['A', 'B', 'C']:
+            elif key in ["A", "B", "C"]:
                 loai = "goc"
-            elif key in ['S', 'P', 'p', 'R', 'r', 'h_a', 'm_a', 'l_a']:
+            elif key in ["S", "P", "p", "R", "r", "h_a", "m_a", "l_a"]:
                 loai = "thong_so_khac"
             else:
                 loai = "khac"
 
             # Thêm node nếu chưa tồn tại hoặc cập nhật giá trị
             if self.qldt.get(key) is None:
-                self.qldt.them_node(key, loai, {
-                    "gia_tri": gia_tri,
-                    "cong_thuc": "Dữ liệu đầu vào từ người dùng"
-                })
+                self.qldt.them_Doi_Tuong(
+                    key,
+                    loai,
+                    {"gia_tri": gia_tri, "cong_thuc": "Dữ liệu đầu vào từ người dùng"},
+                )
             else:
                 self.qldt.set(key, gia_tri)
 
@@ -82,7 +83,7 @@ class Controller:
         graph = self.qldt.lay_do_thi()
         ket_qua = {}
         for node, attr in graph.nodes(data=True):
-            val = attr.get('gia_tri')
+            val = attr.get("gia_tri")
             if val is not None:
                 ket_qua[node] = val
         return ket_qua
@@ -113,17 +114,19 @@ class Controller:
 
         # Duyệt các cạnh có thuộc tính cong_thuc
         for u, v, data in graph.edges(data=True):
-            cong_thuc = data.get('cong_thuc', '').strip()
+            cong_thuc = data.get("cong_thuc", "").strip()
             if cong_thuc:
-                gia_tri_u = graph.nodes[u].get('gia_tri')
-                gia_tri_v = graph.nodes[v].get('gia_tri')
+                gia_tri_u = graph.nodes[u].get("gia_tri")
+                gia_tri_v = graph.nodes[v].get("gia_tri")
                 line = f"{u} → {v} : {cong_thuc}"
                 if gia_tri_v is not None:
                     line += f"  →  {v} = {gia_tri_v:.4f}"
                 traces.append(line)
 
         if not traces:
-            traces.append("(Chưa có quy tắc nào được kích hoạt hoặc chưa lưu cong_thuc vào cạnh)")
+            traces.append(
+                "(Chưa có quy tắc nào được kích hoạt hoặc chưa lưu cong_thuc vào cạnh)"
+            )
 
         return traces
 
@@ -152,9 +155,9 @@ if __name__ == "__main__":
 
     # Ví dụ dữ liệu từ người dùng
     du_lieu = {
-        'a': 6,
-        'b': 8,
-        'C': 90,        # tam giác vuông
+        "a": 6,
+        "b": 8,
+        "C": 90,  # tam giác vuông
         # 'A': 30,      # thử thêm nếu muốn
     }
 

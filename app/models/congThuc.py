@@ -1,16 +1,15 @@
 import math
 from .quanLiDoThi import QuanLiDoThi
-import math
 
 
 class Rules:
     def __init__(self, qldt: QuanLiDoThi):
         self.quan_li_do_thi = qldt
-        self.error = []
+        self.errors = []
 
     def execute_alt(self):
         has_changed = True
-        if (self.kiem_tra_bat_dang_thuc_tam_giac()):
+        if self.kiem_tra_bat_dang_thuc_tam_giac():
 
             while has_changed:
                 so_not_cu = len(self.quan_li_do_thi.lay_do_thi().nodes)
@@ -40,17 +39,20 @@ class Rules:
                 if so_not_cu == so_not_moi and so_canh_cu == so_canh_moi:
                     has_changed = False
 
-            else: 
-                self.error.append("Đây không phải là 1 tam giác")
+            else:
+                self.errors.append("Đây không phải là 1 tam giác")
 
     """Các luật và công thức"""
+
     def kiem_tra_bat_dang_thuc_tam_giac(self):
         v = self.quan_li_do_thi
         a, b, c = v.get("a"), v.get("b"), v.get("c")
 
         if a and b and c:
             if not (a + b > c and a + c > b and b + c > a):
-                self.errors.append(f"Vi phạm bất đẳng thức tam giác: {a}, {b}, {c} không thể tạo thành tam giác.")
+                self.errors.append(
+                    f"Vi phạm bất đẳng thức tam giác: {a}, {b}, {c} không thể tạo thành tam giác."
+                )
                 return False
         return True
 
@@ -300,31 +302,44 @@ class Rules:
         for goc in ["A", "B", "C"]:
             val = v.get(goc)
             if val is not None and round(val, 2) != 60.0:
-                self.errors.append(f"Mâu thuẫn: Tam giác đều nhưng góc {goc}={val} (phải là 60).")
+                self.errors.append(
+                    f"Mâu thuẫn: Tam giác đều nhưng góc {goc}={val} (phải là 60)."
+                )
                 return False
-            
+
         ds_canh = ["a", "b", "c"]
         canh_da_biet = [v.get(c) for c in ds_canh if v.get(c) is not None]
-        
+
         if len(canh_da_biet) > 1:
-            if not all(round(x, 2) == round(canh_da_biet[0], 2) for x in canh_da_biet):
-                self.errors.append("Mâu thuẫn: Tam giác đều nhưng các cạnh nhập vào không bằng nhau.")
+            if not all(
+                round(x, 2) == math.round(canh_da_biet[0], 2) for x in canh_da_biet
+            ):
+                self.errors.append(
+                    "Mâu thuẫn: Tam giác đều nhưng các cạnh nhập vào không bằng nhau."
+                )
                 return False
 
         for goc in ["A", "B", "C"]:
             if not v.get(goc):
                 v.set(goc, 60)
-                v.them_Doi_Tuong(goc, "goc", {"gia_tri": 60, "cong_thuc": "Tính chất tam giác đều"})
+                v.them_Doi_Tuong(
+                    goc, "goc", {"gia_tri": 60, "cong_thuc": "Tính chất tam giác đều"}
+                )
                 changed = True
-        
+
         if canh_da_biet:
             val_chuan = canh_da_biet[0]
             for c in ds_canh:
                 if not v.get(c):
                     v.set(c, val_chuan)
-                    v.them_Doi_Tuong(c, "canh", {"gia_tri": val_chuan, "cong_thuc": "Tính chất tam giác đều"})
+                    v.them_Doi_Tuong(
+                        c,
+                        "canh",
+                        {"gia_tri": val_chuan, "cong_thuc": "Tính chất tam giác đều"},
+                    )
                     changed = True
         return changed
+
     print("Đã áp dụng công thức tam giác đều")
 
     # Diện tích qua bán kính đường tròn ngoại tiếp R: S = (abc) / (4R)
