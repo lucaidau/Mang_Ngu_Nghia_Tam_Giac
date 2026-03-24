@@ -14,21 +14,21 @@ class Rules:
             so_not_cu = len(self.quan_li_do_thi.lay_do_thi().nodes)
             so_canh_cu = len(self.quan_li_do_thi.lay_do_thi().edges)
 
-            self.tong3goc,
-            self.pytago,
-            self.heron,
-            self.dinh_ly_sin,
-            self.dinh_ly_cos,
-            self.chu_vi,
-            self.duong_trung_tuyen,
-            self.tam_giac_can,
-            self.tam_giac_deu,
-            self.dien_tich_ngoai_tiep,
-            self.dien_tich_noi_tiep,
-            self.dien_tich_sin_goc,
-            self.duong_cao,
-            self.duong_phan_giac,
-            self.ti_le_phan_giac,
+            self.tong3goc(),
+            self.chu_vi(),
+            self.heron(),
+            self.pytago(),
+            self.dinh_ly_sin(),
+            self.dinh_ly_cos(),
+            self.duong_trung_tuyen(),
+            self.tam_giac_can(),
+            self.tam_giac_deu(),
+            self.dien_tich_ngoai_tiep(),
+            self.dien_tich_noi_tiep(),
+            self.dien_tich_sin_goc(),
+            self.duong_cao(),
+            self.duong_phan_giac(),
+            self.ti_le_phan_giac(),
 
             # Thêm các công thức khác vào đây
 
@@ -61,7 +61,7 @@ class Rules:
             return True
         if not v.get("A") and v.get("B") and v.get("C"):
             v.set("A", 180 - v.get("B") - v.get("C"))
-            v.them_node(
+            v.them_Doi_Tuong(
                 "A",
                 "goc",
                 {"gia_tri": v.get("A"), "cong_thuc": "Tổng 3 góc của tam giác"},

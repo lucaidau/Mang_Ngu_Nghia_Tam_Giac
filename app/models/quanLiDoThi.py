@@ -24,36 +24,24 @@ class QuanLiDoThi:
     def get(self, ten_doi_tuong):
         if self.G.has_node(ten_doi_tuong):
             return self.G.nodes[ten_doi_tuong].get("gia_tri")
-        return None
-
-    def lay_tat_ca_node_theo_loai(self, loai_can_tim):
-        ket_qua = []
-        for node, data in self.G.nodes(data=True):
-            if data.get("loai") == loai_can_tim:
-                ket_qua.append(node)
-        return ket_qua
-
-    def lay_thong_tin_canh(self, u, v):
-        if self.G.has_edge(u, v):
-            return self.G.edges[u, v]
-        return None
-
-    def lay_tat_ca_canh_cua_node(self, u):
-        return list(self.G.edges(u, data=True))
+        return 0
 
     # ---  UPDATE ---
-    def cap_nhat_node(self, ten, thuoc_tinh_moi):
-        if self.G.has_node(ten):
-            self.G.nodes[ten].update(thuoc_tinh_moi)
-            print(f"Log: Đã cập nhật Node {ten} thành công!")
-        else:
-            print(f"Lỗi: Node {ten} không tồn tại để cập nhật!")
 
-    def cap_nhat_canh(self, u, v, quan_he_moi):
-        if self.G.has_edge(u, v):
-            self.G.edges[u, v]["quan_he"] = quan_he_moi
+    def set(self, ten, gia_tri, cong_thuc="Input"):
+        if self.G.has_node(ten):
+            self.G.nodes[ten]["gia_tri"] = gia_tri
+            if cong_thuc != "Input":
+                self.G.nodes[ten]["cong_thuc"] = cong_thuc
+                self.G.nodes[ten]["gia_tri"] = gia_tri
         else:
-            self.them_canh(u, v, quan_he_moi)
+            loai = (
+                "canh"
+                if ten in ["a", "b", "c"]
+                else "goc" if ten in ["A", "B", "C"] else "khac"
+            )
+            self.them_Doi_Tuong(ten, loai, {"gia_tri": gia_tri, "cong_thuc": cong_thuc})
+        print(f"-> Đã ghi nhận: {ten} = {gia_tri} ({cong_thuc})")
 
     # -- DELETE ---
 

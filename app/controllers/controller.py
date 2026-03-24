@@ -1,10 +1,9 @@
 from ..models.quanLiDoThi import QuanLiDoThi
-from ..views.giaoDienChinh import GiaoDienChinh
 from ..models.congThuc import Rules
 
 
 class GeometryController:
-    def __init__(self, view: GiaoDienChinh = None):
+    def __init__(self, view):
         """
         Khởi tạo controller.
         - view: tham chiếu đến giao diện (để gọi các hàm cập nhật UI nếu cần)
@@ -14,7 +13,7 @@ class GeometryController:
         self.rules = Rules(self.qldt)
         self._status_message = ""
 
-    def set_view(self, view: GiaoDienChinh):
+    def set_view(self, view):
         """Gán view sau nếu chưa có lúc init"""
         self.view = view
 
@@ -40,21 +39,22 @@ class GeometryController:
                 continue
 
             # Xác định loại đối tượng dựa trên quy ước tên biến
-            if key in ['a', 'b', 'c']:
+            if key in ["a", "b", "c"]:
                 loai = "canh"
-            elif key in ['A', 'B', 'C']:
+            elif key in ["A", "B", "C"]:
                 loai = "goc"
-            elif key in ['S', 'P', 'p', 'R', 'r', 'h_a', 'm_a', 'l_a']:
+            elif key in ["S", "P", "p", "R", "r", "h_a", "m_a", "l_a"]:
                 loai = "thong_so_khac"
             else:
                 loai = "khac"
 
             # Thêm node nếu chưa tồn tại hoặc cập nhật giá trị
             if self.qldt.get(key) is None:
-                self.qldt.them_node(key, loai, {
-                    "gia_tri": gia_tri,
-                    "cong_thuc": "Dữ liệu đầu vào từ người dùng"
-                })
+                self.qldt.them_Doi_Tuong(
+                    key,
+                    loai,
+                    {"gia_tri": gia_tri, "cong_thuc": "Dữ liệu đầu vào từ người dùng"},
+                )
             else:
                 self.qldt.set(key, gia_tri)
 
@@ -82,7 +82,7 @@ class GeometryController:
         graph = self.qldt.lay_do_thi()
         ket_qua = {}
         for node, attr in graph.nodes(data=True):
-            val = attr.get('gia_tri')
+            val = attr.get("gia_tri")
             if val is not None:
                 ket_qua[node] = val
         return ket_qua
@@ -113,17 +113,19 @@ class GeometryController:
 
         # Duyệt các cạnh có thuộc tính cong_thuc
         for u, v, data in graph.edges(data=True):
-            cong_thuc = data.get('cong_thuc', '').strip()
+            cong_thuc = data.get("cong_thuc", "").strip()
             if cong_thuc:
-                gia_tri_u = graph.nodes[u].get('gia_tri')
-                gia_tri_v = graph.nodes[v].get('gia_tri')
+                gia_tri_u = graph.nodes[u].get("gia_tri")
+                gia_tri_v = graph.nodes[v].get("gia_tri")
                 line = f"{u} → {v} : {cong_thuc}"
                 if gia_tri_v is not None:
                     line += f"  →  {v} = {gia_tri_v:.4f}"
                 traces.append(line)
 
         if not traces:
-            traces.append("(Chưa có quy tắc nào được kích hoạt hoặc chưa lưu cong_thuc vào cạnh)")
+            traces.append(
+                "(Chưa có quy tắc nào được kích hoạt hoặc chưa lưu cong_thuc vào cạnh)"
+            )
 
         return traces
 
@@ -146,20 +148,20 @@ class GeometryController:
         return f"Nodes: {graph.number_of_nodes()} | Edges: {graph.number_of_edges()}"
 
 
-# --- Test nhanh (console) ---
-if __name__ == "__main__":
-    controller = GeometryController()
+# # --- Test nhanh (console) ---
+# if __name__ == "__main__":
+#     controller = GeometryController()
 
-    # Ví dụ dữ liệu từ người dùng
-    du_lieu = {
-        'a': 6,
-        'b': 8,
-        'C': 90,        # tam giác vuông
-        # 'A': 30,      # thử thêm nếu muốn
-    }
+#     # Ví dụ dữ liệu từ người dùng
+#     du_lieu = {
+#         "a": 6,
+#         "b": 8,
+#         "C": 90,  # tam giác vuông
+#         # 'A': 30,      # thử thêm nếu muốn
+#     }
 
-    controller.nhap_du_lieu_ban_dau(du_lieu)
-    controller.thuc_thi_suy_dien()
+#     controller.nhap_du_lieu_ban_dau(du_lieu)
+#     controller.thuc_thi_suy_dien()
 
-    print(controller.lay_ket_qua_dinh_dang())
-    print("\n" + controller.lay_vet_suy_dien_dinh_dang())
+#     print(controller.lay_ket_qua_dinh_dang())
+#     print("\n" + controller.lay_vet_suy_dien_dinh_dang())
