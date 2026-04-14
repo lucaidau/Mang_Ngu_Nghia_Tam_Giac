@@ -30,10 +30,11 @@ class Rules:
     
     def _save(self, key, loai, value, method_name):
         if value is not None:
-            setattr(self, key, value) 
-            self.quan_li_do_thi.set(key, value, method_name)
+            float_value = float(value)
+            setattr(self, key, float_value) 
+            self.quan_li_do_thi.set(key, float_value, method_name)
             info = {
-            "gia_tri": round(value, 2), # Làm tròn cho đẹp đồ thị
+            "gia_tri":round(float_value,2),
             "tu_cong_thuc": method_name
             }
             self.quan_li_do_thi.them_Doi_Tuong(key, loai, info)
@@ -45,7 +46,7 @@ class Rules:
         elif self.p and not self.P:
             self.P = self.p * 2
 
-        print(f" -> Đã tính được {key} = {value:.2f} bằng {method_name}")
+        print(f" -> Đã tính được {key} = {float_value:2f} bằng {method_name}")
 
     def execute_alt(self):
         if not self.kiem_tra_bat_dang_thuc_tam_giac():
@@ -65,22 +66,21 @@ class Rules:
             self.tam_giac_tu_nhon()
 
             self.tong3goc()
-            self.chu_vi(),
-            self.heron(),
-            self.pytago(),
-            self.dinh_ly_sin(),
-            self.dinh_ly_cos(),
-            self.duong_trung_tuyen(),
-                
-            self.tam_giac_vuong_can(),
-            self.dien_tich_ngoai_tiep(),
-            self.dien_tich_noi_tiep(),
-            self.dien_tich_sin_goc(),
-            self.duong_cao(),
-            self.duong_phan_giac(),
-            self.ti_le_phan_giac(),
-            self.tam_ngoai_tiep(),
-            self.tam_noi_tiep(),
+            self.chu_vi()
+            self.heron()
+            self.pytago()
+            self.dinh_ly_sin()
+            self.dinh_ly_cos()
+            self.duong_trung_tuyen()
+
+            self.dien_tich_ngoai_tiep()
+            self.dien_tich_noi_tiep()
+            self.dien_tich_sin_goc()
+            self.duong_cao()
+            self.duong_phan_giac()
+            self.ti_le_phan_giac()
+            self.tam_ngoai_tiep()
+            self.tam_noi_tiep()
 
             self._sync_from_graph()
             # Thêm các công thức khác vào đây
@@ -195,10 +195,10 @@ class Rules:
                 self.is_vuong = True
             elif a2 + b2 < c2:
                 self.is_tu = True
-                self._save("loai_goc", "tinh_chat", "Tam giác Tù", "Bất đẳng thức cạnh")
+                self._save("loai_goc", "tinh_chat", self.is_tu, "Tam giác tù")
             else:
-                self.is_nhon = True
-                self._save("loai_goc", "tinh_chat", "Tam giác Nhọn", "Bất đẳng thức cạnh")
+                self.is_tu = False
+                self._save("loai_goc", "tinh_chat", self.is_tu, "Tam giác nhọn")
             
     def tam_giac_vuong_can(self):
         """Suy luận đặc thù cho tam giác vuông cân"""

@@ -57,35 +57,44 @@ class Controller:
         self.rules = Rules(self.qldt)
 
     def ve_do_thi(self):
-        # 1. Lấy dữ liệu đồ thị từ Model
         G = self.qldt.lay_do_thi()
-        
-        if not G.nodes():
-            print("Đồ thị trống, không có gì để vẽ.")
-            return
+        if not G.nodes(): return
 
-        # 2. Khởi tạo cửa sổ vẽ
-        plt.figure(figsize=(10, 7))
-        plt.title("Mạng Ngữ Nghĩa Tam Giác")
+        plt.figure(figsize=(12, 8))
+        pos = nx.spring_layout(G, seed=42) # Cố định vị trí để đồ thị không nhảy lung tung
 
-        # 3. Xác định vị trí các node (Spring layout giúp các node tỏa đều)
-        pos = nx.spring_layout(G, seed=42)
+        # 1. Tạo nhãn bao gồm Tên và Giá trị (Ví dụ: "a: 5.0")
+        labels = {}
+        for node, attr in G.nodes(data=True):
+            val = attr.get('gia_tri')
+            if val is not None:
+                # Nếu có giá trị thì hiển thị: Tên = Giá trị
+                labels[node] = f"{node}\n({round(val, 2)})"
+            else:
+                labels[node] = node
 
-        # 4. Phân loại màu sắc để đồ thị đẹp hơn
+        # 2. Phân loại màu sắc (Cạnh đỏ, Góc xanh, khác Vàng)
         color_map = []
         for node, attr in G.nodes(data=True):
             loai = attr.get('loai', '')
-            if loai == 'canh': color_map.append('#ff7675') # Màu đỏ nhạt cho cạnh
-            elif loai == 'goc': color_map.append('#74b9ff') # Màu xanh cho góc
-            else: color_map.append('#ffeaa7') # Màu vàng cho diện tích/chu vi
+            if loai == 'canh': color_map.append('#ff7675')
+            elif loai == 'goc': color_map.append('#74b9ff')
+            else: color_map.append('#ffeaa7')
 
-        # 5. Vẽ node và nhãn
-        nx.draw(G, pos, with_labels=True, node_color=color_map, 
-                node_size=2000, font_size=10, font_weight="bold", edge_color="#dfe6e9")
+        # 3. Vẽ đồ thị
+        nx.draw(G, pos, 
+                labels=labels,           # Dùng nhãn mới có chứa giá trị
+                with_labels=True, 
+                node_color=color_map, 
+                node_size=3000,          # Tăng kích thước node để chứa vừa chữ
+                font_size=9, 
+                font_weight="bold", 
+                edge_color="#ced6e0",
+                width=2)
 
-        # 6. Vẽ nhãn cho các quan hệ (nếu có cạnh nối)
+        # 4. Vẽ tên công thức lên các cạnh nối (nếu bạn có thiết lập quan hệ)
         edge_labels = nx.get_edge_attributes(G, 'relation')
         nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=8)
 
-        # 7. Hiển thị
+        plt.title("MẠNG NGỮ NGHĨA TAM GIÁC - TRẠNG THÁI HIỆN TẠI")
         plt.show()
