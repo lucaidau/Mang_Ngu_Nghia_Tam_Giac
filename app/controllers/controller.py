@@ -3,6 +3,7 @@ from app.models.quanLiDoThi import QuanLiDoThi
 from app.models.congThuc  import Rules
 import matplotlib.pyplot as plt
 import networkx as nx
+import math
 
 class Controller:
     def __init__(self, view=None):
@@ -21,10 +22,21 @@ class Controller:
             if not value: continue
             try:
                 gia_tri = float(value)
+                # self.validate_tam_giac()
                 # Nạp vào QuanLiDoThi
                 self.qldt.set(key, gia_tri, "Dữ liệu nhập")
             except (ValueError, TypeError):
                 print(f"Cảnh báo: Giá trị '{value}' của {key} không hợp lệ.")
+
+    def validate_tam_giac(self, a, b, c, deg_A, deg_B, deg_C):
+        if any (val <= 0 for val in [a, b, c, deg_A,deg_B,deg_C]):
+            return False, "Các cạnh và góc phải lớn hơn 0"
+        if not math.isclose(deg_A + deg_B + deg_C, 180, rel_tol=1e-5):
+            return False, "Tổng 3 góc phải là 180 độ"
+        if not (a+b>c and a+c>b and b+c>a):
+            return False, "Vi phạm bất đẳng thức tam giác"
+        
+        pass
 
     def thuc_thi_suy_dien(self):
         """Kích hoạt bộ quy tắc suy diễn"""
@@ -61,9 +73,9 @@ class Controller:
         if not G.nodes(): return
 
         plt.figure(figsize=(12, 8))
-        pos = nx.spring_layout(G, seed=42) # Cố định vị trí để đồ thị không nhảy lung tung
+        pos = nx.spring_layout(G, k=5.0, iterations=100, seed=50) # Cố định vị trí để đồ thị không nhảy lung tung
 
-        # 1. Tạo nhãn bao gồm Tên và Giá trị (Ví dụ: "a: 5.0")
+        # 1. Tạo nhãn bao gồm Tên và Giá trị 
         labels = {}
         for node, attr in G.nodes(data=True):
             val = attr.get('gia_tri')
@@ -73,7 +85,7 @@ class Controller:
             else:
                 labels[node] = node
 
-        # 2. Phân loại màu sắc (Cạnh đỏ, Góc xanh, khác Vàng)
+        # 2. Phân loại màu sắc
         color_map = []
         for node, attr in G.nodes(data=True):
             loai = attr.get('loai', '')
@@ -92,7 +104,7 @@ class Controller:
                 edge_color="#ced6e0",
                 width=2)
 
-        # 4. Vẽ tên công thức lên các cạnh nối (nếu bạn có thiết lập quan hệ)
+        # 4. Vẽ tên công thức lên các cạnh nối 
         edge_labels = nx.get_edge_attributes(G, 'relation')
         nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, font_size=8)
 

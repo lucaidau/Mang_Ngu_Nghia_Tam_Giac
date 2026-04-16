@@ -1,7 +1,5 @@
 import math
 from .quanLiDoThi import QuanLiDoThi
-import math
-
 
 class Rules:
     def __init__(self, qldt: QuanLiDoThi):
@@ -12,6 +10,7 @@ class Rules:
         self.S = self.p = self.P = self.R = self.r = None
         self.ha = self.hb = self.hc = None
         self.la = self.lb = self.lc = None
+        self.m_a = self.m_b = self.m_c = None
 
         self.is_vuong = False
         self.is_can = False
@@ -19,26 +18,70 @@ class Rules:
         self.is_tu = False
         self.is_nhon = False
         self.dinh_can = None
+        self.dinh_vuong = None
+
+
+        self.changed = False
+        self.debug = False
+
+        self.dependency_map = {
+            "a": [self.pytago, self.heron, self.dinh_ly_sin, self.dinh_ly_cos, self.chu_vi, 
+          self.duong_trung_tuyen, self.dien_tich_ngoai_tiep, self.dien_tich_noi_tiep, 
+          self.dien_tich_sin_goc, self.duong_cao, self.duong_phan_giac, self.ti_le_phan_giac, self.tam_noi_tiep],
+            "b": [self.pytago, self.heron, self.dinh_ly_sin, self.dinh_ly_cos, self.chu_vi, 
+          self.duong_trung_tuyen, self.dien_tich_ngoai_tiep, self.dien_tich_noi_tiep, 
+          self.dien_tich_sin_goc, self.duong_cao, self.duong_phan_giac, self.ti_le_phan_giac, self.tam_noi_tiep],
+            "c": [self.pytago, self.heron, self.dinh_ly_sin, self.dinh_ly_cos, self.chu_vi, 
+          self.duong_trung_tuyen, self.dien_tich_ngoai_tiep, self.dien_tich_noi_tiep, 
+          self.dien_tich_sin_goc, self.duong_cao, self.duong_phan_giac, self.ti_le_phan_giac, self.tam_noi_tiep],
+
+            "A": [self.tong3goc, self.dinh_ly_sin, self.dinh_ly_cos, self.dien_tich_sin_goc, self.duong_phan_giac, self.chu_vi],
+            "B": [self.tong3goc, self.dinh_ly_sin, self.dinh_ly_cos, self.dien_tich_sin_goc, self.duong_phan_giac, self.chu_vi],
+            "C": [self.tong3goc, self.dinh_ly_sin, self.dinh_ly_cos, self.dien_tich_sin_goc, self.duong_phan_giac, self.chu_vi],
+
+            "S": [self.duong_cao, self.dien_tich_ngoai_tiep, self.dien_tich_noi_tiep, self.chu_vi],
+
+            "P": [self.chu_vi, self.dien_tich_noi_tiep],
+            "R": [self.dinh_ly_sin, self.dien_tich_ngoai_tiep, self.chu_vi],
+            "r": [self.dien_tich_noi_tiep, self.chu_vi],
+
+            "posA": [self.tam_ngoai_tiep, self.tam_noi_tiep],
+            "posB": [self.tam_ngoai_tiep, self.tam_noi_tiep],
+            "posC": [self.tam_ngoai_tiep, self.tam_noi_tiep],
+        }
 
     def _sync_from_graph(self):
         v = self.quan_li_do_thi
         self.a, self.b, self.c = v.get("a"), v.get("b"), v.get("c")
         self.A, self.B, self.C = v.get("A"), v.get("B"), v.get("C")
         self.S, self.P, self.R, self.r = v.get("S"), v.get("P"), v.get("R"), v.get("r")
-        self.ha, self.hb, self.hc = v.get("h_a"), v.get("h_b"), v.get("h_c")
-        self.la, self.lb, self.lc = v.get("l_a"), v.get("l_b"), v.get("l_c")
+        self.ha, self.hb, self.hc = v.get("ha"), v.get("hb"), v.get("hc")
+        self.la, self.lb, self.lc = v.get("la"), v.get("lb"), v.get("lc")
+        if self.P: self.p = self.P / 2
     
-    def _save(self, key, loai, value, method_name):
-        if value is not None:
-            float_value = float(value)
-            setattr(self, key, float_value) 
-            self.quan_li_do_thi.set(key, float_value, method_name)
+    def _save(self, key, loai, value, method_name, tu_cac_bien=None):
+        self.changed = True
+        if value is None:
+            return False
+        
+        float_value = float(value)
+        old_value = getattr(self, key)
+
+        if old_value is not None and math.isclose(old_value, float_value):
+            return False
+        
+        self.quan_li_do_thi.set(key, float_value, method_name)
+        if self.debug:
             info = {
-            "gia_tri":round(float_value,2),
-            "tu_cong_thuc": method_name
+                "gia_tri": round(float_value, 2),
+                "tu_cong_thuc": method_name
             }
             self.quan_li_do_thi.them_Doi_Tuong(key, loai, info)
-        
+
+        if tu_cac_bien:
+            for bien_goc in tu_cac_bien:
+                self.quan_li_do_thi.them_canh(bien_goc, key, method_name)
+
         if self.a and self.b and self.c:
             self.p = (self.a + self.b + self.c) / 2
         if self.P and not self.p:
@@ -46,50 +89,56 @@ class Rules:
         elif self.p and not self.P:
             self.P = self.p * 2
 
-        print(f" -> Đã tính được {key} = {float_value:2f} bằng {method_name}")
+        if self.debug:
+            print(f"[DEBUG] {key} = {float_value:.2f} ({method_name})") 
+        return True
 
     def execute_alt(self):
+        self._sync_from_graph()
+
         if not self.kiem_tra_bat_dang_thuc_tam_giac():
             self.error.append("Vi phạm bất đẳng thức tam giác hoặc dữ liệu lỗi.")
             return
         
-        has_changed = True
-        while has_changed:
+        self.tam_giac_can()
+        self.tam_giac_vuong_can()
+        self.tam_giac_deu()
+        self.tam_giac_vuong()
+        self.tam_giac_tu_nhon()
+        self._sync_from_graph()
+
+        danh_sach_bien = ["a", "b", "c", "A", "B", "C", "S", "P", "p", "R", "r", "ha", "hb", "hc", "la", "lb", "lc"]
+        da_xu_ly = set() # Tập hợp lưu các biến đã được ném vào hàng đợi
+        hang_doi = []    # Hàng đợi chờ xử lý
+
+        for bien in danh_sach_bien:
+            if getattr(self, bien) is not None:
+                hang_doi.append(bien)
+                da_xu_ly.add(bien)
+
+        while len(hang_doi) > 0:
+            bien_hien_tai = hang_doi.pop(0) # Lấy 1 biến ra khỏi hàng đợi để xét
+
+            if bien_hien_tai in self.dependency_map:
+                for ham_cong_thuc in self.dependency_map[bien_hien_tai]:
+                    self.changed = False
+                    ham_cong_thuc()
+                    if self.changed:
+                        self._sync_from_graph()
+
+                        for bien in danh_sach_bien:
+                            if getattr(self, bien) is not None and bien not in da_xu_ly:
+                                hang_doi.append(bien)
+                                da_xu_ly.add(bien)
+            
+            # Đồng bộ lại dữ liệu để xem các hàm vừa chạy có đẻ ra biến nào MỚI không
             self._sync_from_graph()
-
-            so_not_cu = len(self.quan_li_do_thi.lay_do_thi().nodes)
-            so_canh_cu = len(self.quan_li_do_thi.lay_do_thi().edges)
-
-            self.tam_giac_can()
-            self.tam_giac_vuong_can()
-            self.tam_giac_deu()
-            self.tam_giac_tu_nhon()
-
-            self.tong3goc()
-            self.chu_vi()
-            self.heron()
-            self.pytago()
-            self.dinh_ly_sin()
-            self.dinh_ly_cos()
-            self.duong_trung_tuyen()
-
-            self.dien_tich_ngoai_tiep()
-            self.dien_tich_noi_tiep()
-            self.dien_tich_sin_goc()
-            self.duong_cao()
-            self.duong_phan_giac()
-            self.ti_le_phan_giac()
-            self.tam_ngoai_tiep()
-            self.tam_noi_tiep()
-
-            self._sync_from_graph()
-            # Thêm các công thức khác vào đây
-
-            so_not_moi = len(self.quan_li_do_thi.lay_do_thi().nodes)
-            so_canh_moi = len(self.quan_li_do_thi.lay_do_thi().edges)
-
-            if so_not_cu == so_not_moi and so_canh_cu == so_canh_moi:
-                has_changed = False
+        
+            for bien in danh_sach_bien:
+                # Nếu biến có giá trị VÀ chưa từng được xử lý
+                if getattr(self, bien) is not None and bien not in da_xu_ly:
+                    hang_doi.append(bien)
+                    da_xu_ly.add(bien)
 
     """Các luật và công thức"""
     def kiem_tra_bat_dang_thuc_tam_giac(self):
@@ -97,7 +146,7 @@ class Rules:
 
         if self.a and self.b and self.c:
             if not (self.a + self.b > self.c and self.a + self.c > self.b and self.b + self.c > self.a):
-                self.errors.append(f"Vi phạm bất đẳng thức tam giác: {self.a}, {self.b}, {self.c} không thể tạo thành tam giác.")
+                self.error.append(f"Vi phạm bất đẳng thức tam giác: {self.a}, {self.b}, {self.c} không thể tạo thành tam giác.")
                 return False
         return True
     
@@ -195,10 +244,10 @@ class Rules:
                 self.is_vuong = True
             elif a2 + b2 < c2:
                 self.is_tu = True
-                self._save("loai_goc", "tinh_chat", self.is_tu, "Tam giác tù")
+                self._save("is_tu", "tinh_chat", self.is_tu, "Tam giác tù")
             else:
                 self.is_tu = False
-                self._save("loai_goc", "tinh_chat", self.is_tu, "Tam giác nhọn")
+                self._save("is_tu", "tinh_chat", self.is_tu, "Tam giác nhọn")
             
     def tam_giac_vuong_can(self):
         """Suy luận đặc thù cho tam giác vuông cân"""
@@ -247,15 +296,15 @@ class Rules:
         v = self.quan_li_do_thi
 
         if self.A and self.B and not self.C:
-            return self._save("C", "goc", 180 - self.A - self.B, "Tổng 3 góc")
+            return self._save("C", "goc", 180 - self.A - self.B, "Tổng 3 góc", ["A", "B"])
             
         if self.A and self.C and not self.B:
-            return self._save("B", "goc", 180 - self.A - self.C, "Tổng 3 góc")
+            return self._save("B", "goc", 180 - self.A - self.C, "Tổng 3 góc", ["A", "C"])
             
         if self.B and self.C and not self.A:
-            return self._save("A", "goc", 180 - self.B - self.C, "Tổng 3 góc")
-        
-        print("Đã áp dụng công thức tổng 3 góc của tam giác")
+            return self._save("A", "goc", 180 - self.B - self.C, "Tổng 3 góc", ["B", "C"])
+        if self.debug:
+            print("Đã áp dụng công thức tổng 3 góc của tam giác")
         return False
 
     def chu_vi(self):
@@ -263,14 +312,15 @@ class Rules:
         v = self.quan_li_do_thi
 
         if self.a and self.b and self.c and not v.get("P"):
-            return self._save("P","chu_vi", self.a + self.b + self.c, "Chu vi từ S và r")
+            return self._save("P","chu_vi", self.a + self.b + self.c, "Chu vi từ S và r", ["a", "b", "c"])
         if self.S and self.r and not self.P:
-            return self._save("P", "chu_vi", (2 * self.S) / self.r, "Chu vi từ S và r")
+            return self._save("P", "chu_vi", (2 * self.S) / self.r, "Chu vi từ S và r", ["S", "r"])
         if self.R and self.A and self.B and self.C and not self.P:
             return self._save("P", "chu_vi", 2 * self.R * (math.sin(math.radians(self.A)) + 
                                math.sin(math.radians(self.B)) + 
-                               math.sin(math.radians(self.C))), "Chu vi từ R và 3 góc")
-        print("Đã áp dụng công thức Chu Vi")
+                               math.sin(math.radians(self.C))), "Chu vi từ R và 3 góc", ["R", "A", "B", "C"])
+        if self.debug:
+            print("Đã áp dụng công thức Chu Vi")
         return False
 
     def heron(self):
@@ -280,44 +330,121 @@ class Rules:
         if self.a and self.b and self.c and not v.get("S"):
             p = (self.a + self.b + self.c) / 2
             S_value = math.sqrt(p * (p - self.a) * (p - self.b) * (p - self.c))
-            return self._save("S","dien_tich", S_value, "Diện tích từ công thức Heron")
-        print("Đã áp dụng công thức Heron")
+            return self._save("S","dien_tich", S_value, "Diện tích từ công thức Heron", ["a", "b", "c"])
+        if self.debug:
+            print("Đã áp dụng công thức Heron")
+        return False
 
     def pytago(self):
-        """Chỉ áp dụng nếu là tam giác vuông (giả sử góc C=90) hoặc biết 2 cạnh"""
         v = self.quan_li_do_thi
+        """Chỉ áp dụng nếu là tam giác vuông (giả sử góc C=90) hoặc biết 2 cạnh"""
+        if not self.is_vuong:
+            return False
         # Nếu biết a, b tính c: c = sqrt(a^2 + b^2)
         if self.a and self.b and not self.c:
             S_value = math.sqrt(self.a**2 + self.b**2)
-            return self._save("c", "canh", S_value, "Pytago")
-        
+            return self._save("c", "canh", S_value, "Pytago", ["a", "b"])
         # Nếu biết a, c tính b: b = sqrt(c^2 - a^2)
         if self.a and self.c and not self.b:
             if self.c > self.a:  # Đảm bảo c là cạnh huyền
                 S_value = math.sqrt(self.c**2 - self.a**2)
-                return self._save("b", "canh", S_value, "Pytago")
+                return self._save("b", "canh", S_value, "Pytago", ["a", "c"])
             
         # Nếu biết b, c tính a: a = sqrt(c^2 - b^2)
         if self.b and self.c and not self.a:
             if self.c > self.b:  # Đảm bảo c là cạnh huyền
                 S_value = math.sqrt(self.c**2 - self.b**2)
-                return self._save("a", "canh", S_value, "Pytago")
-        print("Đã áp dụng định lý Pytago")
+                return self._save("a", "canh", S_value, "Pytago", ["b", "c"])
+        if self.debug:
+            print("Đã áp dụng định lý Pytago")
+        return False
 
     def dinh_ly_sin(self):
-        """a/sinA = 2R"""
         v = self.quan_li_do_thi
 
         if self.a and self.A and not self.R:
-            R_value = self.a / (2 * math.sin(math.radians(self.A)))
-            return self._save("R", "ban_kinh", R_value, "Định lý Sin")
+            return self._save("R", "ban_kinh", self.a / (2 * math.sin(math.radians(self.A))), "Định lý Sin", ["a", "A"])
         if self.b and self.B and not self.R:
-            R_value = self.b / (2 * math.sin(math.radians(self.B)))
-            return self._save("R", "ban_kinh", R_value, "Định lý Sin")
+            return self._save("R", "ban_kinh", self.b / (2 * math.sin(math.radians(self.B))), "Định lý Sin", ["b", "B"])
         if self.c and self.C and not self.R:
-            R_value = self.c / (2 * math.sin(math.radians(self.C)))
-            return self._save("R", "ban_kinh", R_value, "Định lý Sin")
-        print("Đã áp dụng định lý Sin")
+            return self._save("R", "ban_kinh", self.c / (2 * math.sin(math.radians(self.C))), "Định lý Sin", ["c", "C"])
+        
+        if self.R and self.A and not self.a:
+            return self._save("a", "canh", 2 * self.R * math.sin(math.radians(self.A)), "Định lý Sin", ["R", "A"])
+        if self.R and self.B and not self.b:
+            return self._save("b", "canh", 2 * self.R * math.sin(math.radians(self.B)), "Định lý Sin", ["R", "B"])
+        if self.R and self.C and not self.c:
+            return self._save("c", "canh", 2 * self.R * math.sin(math.radians(self.C)), "Định lý Sin", ["R", "C"])
+        
+        if self.a and self.A and self.B and not self.b:
+            val = (self.a * math.sin(math.radians(self.B))) / math.sin(math.radians(self.A))
+            return self._save("b", "canh", val, "Định lý Sin", ["a", "A", "B"])
+        if self.a and self.A and self.C and not self.c:
+            val = (self.a * math.sin(math.radians(self.C))) / math.sin(math.radians(self.A))
+            return self._save("c", "canh", val, "Định lý Sin", ["a", "A", "C"])
+        if self.b and self.B and self.A and not self.a:
+            val = (self.b * math.sin(math.radians(self.A))) / math.sin(math.radians(self.B))
+            return self._save("a", "canh", val, "Định lý Sin", ["b", "B", "A"])
+        if self.b and self.B and self.C and not self.c:
+            val = (self.b * math.sin(math.radians(self.C))) / math.sin(math.radians(self.B))
+            return self._save("c", "canh", val, "Định lý Sin", ["b", "B", "C"])
+        if self.c and self.C and self.A and not self.a:
+            val = (self.c * math.sin(math.radians(self.A))) / math.sin(math.radians(self.C))
+            return self._save("a", "canh", val, "Định lý Sin", ["c", "C", "A"])
+        if self.c and self.C and self.B and not self.b:
+            val = (self.c * math.sin(math.radians(self.B))) / math.sin(math.radians(self.C))
+            return self._save("b", "canh", val, "Định lý Sin", ["c", "C", "B"])
+        
+        if self.a and self.A and self.b and not self.B:
+            sin_B = (self.b * math.sin(math.radians(self.A))) / self.a
+            # Kiểm tra điều kiện sin <= 1 để tránh lỗi math domain
+            if -1 <= sin_B <= 1:
+                val_B = math.degrees(math.asin(sin_B))
+                return self._save("B", "goc", val_B, "Định lý Sin", ["a", "A", "b"])
+            
+        if self.a and self.A and self.c and not self.C:
+            sin_C = (self.c * math.sin(math.radians(self.A))) / self.a
+            if -1 <= sin_C <= 1:
+                val_C = math.degrees(math.asin(sin_C))
+                return self._save("C", "goc", val_C, "Định lý Sin", ["a", "A", "c"])
+        
+        if self.b and self.B and self.a and not self.A:
+            sin_A = (self.a * math.sin(math.radians(self.B))) / self.b
+            if -1 <= sin_A <= 1:
+                val_A = math.degrees(math.asin(sin_A))
+                return self._save("A", "goc", val_A, "Định lý Sin", ["b", "B", "a"])
+        
+        if self.b and self.B and self.c and not self.C:
+            sin_C = (self.c * math.sin(math.radians(self.B))) / self.b
+            if -1 <= sin_C <= 1:
+                val_C = math.degrees(math.asin(sin_C))
+                return self._save("C", "goc", val_C, "Định lý Sin", ["b", "B", "c"])
+        
+        if self.c and self.C and self.a and not self.A:
+            sin_A = (self.a * math.sin(math.radians(self.C))) / self.c
+            if -1 <= sin_A <= 1:
+                val_A = math.degrees(math.asin(sin_A))
+                return self._save("A", "goc", val_A, "Định lý Sin", ["c", "C", "a"])
+        
+        if self.c and self.C and self.b and not self.B:
+            sin_B = (self.b * math.sin(math.radians(self.C))) / self.c
+            if -1 <= sin_B <= 1:
+                val_B = math.degrees(math.asin(sin_B))
+                return self._save("B", "goc", val_B, "Định lý Sin", ["c", "C", "b"])
+        
+        if self.R and self.C and not self.c:
+            val_c = 2 * self.R * math.sin(math.radians(self.C))
+            return self._save("c", "canh", val_c, "Định lý Sin", ["R", "C"])
+        if self.R and self.B and not self.b:
+            val_b = 2 * self.R * math.sin(math.radians(self.B))
+            return self._save("b", "canh", val_b, "Định lý Sin", ["R", "B"])
+        if self.R and self.A and not self.a:
+            val_a = 2 * self.R * math.sin(math.radians(self.A))
+            return self._save("a", "canh", val_a, "Định lý Sin", ["R", "A"])
+        
+        if self.debug:
+            print("Đã áp dụng định lý Sin")
+        return False
 
     def dinh_ly_cos(self):
         v = self.quan_li_do_thi
@@ -325,22 +452,31 @@ class Rules:
             # Tính góc A từ công thức định lý cosin
             cos_A = (self.b**2 + self.c**2 - self.a**2) / (2 * self.b * self.c)
             A_value = math.degrees(math.acos(cos_A))
-            return self._save("A", "goc", A_value, "Định lý Cosin")
+            return self._save("A", "goc", A_value, "Định lý Cosin", ["a", "b", "c"])
         if self.a and self.b and self.c and not self.B:
             # Tính góc B từ công thức định lý cosin
             cos_B = (self.a**2 + self.c**2 - self.b**2) / (2 * self.a * self.c) 
             B_value = math.degrees(math.acos(cos_B))
-            return self._save("B", "goc", B_value, "Định lý Cosin")
+            return self._save("B", "goc", B_value, "Định lý Cosin", ["a", "b", "c"])
         if self.a and self.b and self.c and not self.C:
             # Tính góc C từ công thức định lý cosin
             cos_C = (self.a**2 + self.b**2 - self.c**2) / (2 * self.a * self.b)
             C_value = math.degrees(math.acos(cos_C))
-            v.set("C", C_value, "Định lý Cosin")
-            v.them_Doi_Tuong(
-                "C", "goc", {"gia_tri": C_value, "cong_thuc": "Định lý Cosin"}
-            )
-            return True
-        print("Đã áp dụng định lý Cosin")
+            return self._save("C", "goc", C_value, "Định lý Cosin", ["a", "b", "c"])
+        
+        if self.a and self.b and self.C and not self.c:
+            c_val = math.sqrt(self.a**2 + self.b**2 - 2*self.a*self.b*math.cos(math.radians(self.C)))
+            return self._save("c", "canh", c_val, "Định lý Cosin", ["a", "b", "C"])
+        if self.a and self.c and self.B and not self.b:
+            b_val = math.sqrt(self.a**2 + self.c**2 - 2*self.a*self.c*math.cos(math.radians(self.B)))
+            return self._save("b", "canh", b_val, "Định lý Cosin", ["a", "c", "B"])
+        if self.b and self.c and self.A and not self.a:
+            a_val = math.sqrt(self.b**2 + self.c**2 - 2*self.b*self.c*math.cos(math.radians(self.A)))
+            return self._save("a", "canh", a_val, "Định lý Cosin", ["b", "c", "A"])
+        
+        if self.debug:
+            print("Đã áp dụng định lý Cosin")
+        return False
 
     def duong_trung_tuyen(self):
         """Đường trung tuyến: m_a = 0.5 * sqrt(2b^2 + 2c^2 - a^2)"""
@@ -348,14 +484,17 @@ class Rules:
 
         if self.a and self.b and self.c and not v.get("m_a"):
             m_a_value = 0.5 * math.sqrt(2 * self.b**2 + 2 * self.c**2 - self.a**2)
-            return self._save("m_a", "duong_trung_tuyen", m_a_value, "Công thức Đường Trung Tuyến")
+            return self._save("m_a", "duong_trung_tuyen", m_a_value, "Công thức Đường Trung Tuyến", ["a", "b", "c"])
         if self.a and self.b and self.c and not v.get("m_b"):
             m_b_value = 0.5 * math.sqrt(2 * self.a**2 + 2 * self.c**2 - self.b**2)
-            return self._save("m_b", "duong_trung_tuyen", m_b_value, "Công thức Đường Trung Tuyến")
+            return self._save("m_b", "duong_trung_tuyen", m_b_value, "Công thức Đường Trung Tuyến", ["a", "b", "c"])
         if self.a and self.b and self.c and not v.get("m_c"):
             m_c_value = 0.5 * math.sqrt(2 * self.a**2 + 2 * self.b**2 - self.c**2)
-            return self._save("m_c", "duong_trung_tuyen", m_c_value, "Công thức Đường Trung Tuyến")
-        print("Đã áp dụng công thức Đường Trung Tuyến")
+            return self._save("m_c", "duong_trung_tuyen", m_c_value, "Công thức Đường Trung Tuyến", ["a", "b", "c"])
+        
+        if self.debug:
+            print("Đã áp dụng công thức Đường Trung Tuyến")
+        return False
 
     # Diện tích qua bán kính đường tròn ngoại tiếp R: S = (abc) / (4R)
     def dien_tich_ngoai_tiep(self):
@@ -363,11 +502,13 @@ class Rules:
 
         if self.a and self.b and self.c and self.S and not self.R:
             R_val = (self.a * self.b * self.c) / (4 * self.S)
-            return self._save("R", "ban_kinh", R_val, "Công thức diện tích ngoại tiếp")
+            return self._save("R", "ban_kinh", R_val, "Công thức diện tích ngoại tiếp", ["a", "b", "c", "S"])
         if self.a and self.b and self.c and self.R and not self.S:
             S_val = (self.a * self.b * self.c) / (4 * self.R)
-            return self._save("S", "dien_tich", S_val, "Công thức diện tích ngoại tiếp")
-        print("Đã áp dụng công thức diện tích ngoại tiếp")
+            return self._save("S", "dien_tich", S_val, "Công thức diện tích ngoại tiếp", ["a", "b", "c", "R"])
+        if self.debug:
+            print("Đã áp dụng công thức diện tích ngoại tiếp")
+        return False
 
     # Diện tích qua bán kính nội tiếp r: S = p * r
     def dien_tich_noi_tiep(self):
@@ -377,11 +518,14 @@ class Rules:
             p = (self.a + self.b + self.c) / 2
             if not self.S and self.r:
                 S_val = p * self.r
-                return self._save("S", "dien_tich", S_val, "S = p*r")
+                return self._save("S", "dien_tich", S_val, "S = p*r", ["a", "b", "c", "r"])
             if self.S and not self.r:
                 r_val = self.S / p
-                return self._save("r", "ban_kinh_noi_tiep", r_val, "r = S/p")
-        print("Đã áp dụng công thức diện tích nội tiếp")
+                return self._save("r", "ban_kinh_noi_tiep", r_val, "r = S/p", ["a", "b", "c", "S"])
+            
+        if self.debug:
+            print("Đã áp dụng công thức diện tích nội tiếp")
+        return False
 
     # Diện tích qua 2 cạnh và góc xen giữa: S = 0.5 * a * b * sin(C)
     def dien_tich_sin_goc(self):
@@ -389,50 +533,55 @@ class Rules:
 
         if self.a and self.b and self.C and not self.S:
             S_val = 0.5 * self.a * self.b * math.sin(math.radians(self.C))
-            return self._save("S", "dien_tich", S_val, "S = 1/2*ab*sinC")
+            return self._save("S", "dien_tich", S_val, "S = 1/2*ab*sinC", ["a", "b", "C"])
         # 2. Trường hợp biết cạnh b, c và góc A (Tăng tính liên kết)
         if self.b and self.c and self.A and not self.S:  
             S_val = 0.5 * self.b * self.c * math.sin(math.radians(self.A))
-            return self._save("S", "dien_tich", S_val, "S = 1/2 * b * c * sin(A)")
+            return self._save("S", "dien_tich", S_val, "S = 1/2 * b * c * sin(A)", ["b", "c", "A"])
         # 3. Trường hợp biết cạnh a, c và góc B
         if self.a and self.c and self.B and not self.S:
             S_val = 0.5 * self.a * self.c * math.sin(math.radians(self.B))
-            return self._save("S", "dien_tich", S_val, "S = 1/2 * a * c * sin(B)")
-        print("Đã áp dụng công thức diện tích sin góc")
+            return self._save("S", "dien_tich", S_val, "S = 1/2 * a * c * sin(B)", ["a", "c", "B"])
+        if self.debug:
+            print("Đã áp dụng công thức diện tích sin góc")
+        return False
 
     def duong_cao(self):
         """Đường cao: h = 2S / cạnh_tương_ứng"""
-        # 1. Tính h_a
+        # 1. Tính ha
         if self.S and self.a and not self.ha:
             val = (2 * self.S) / self.a
-            return self._save("ha", "duong_cao", val, "h_a = 2S / a")
+            return self._save("ha", "duong_cao", val, "ha = 2S / a", ["S", "a"])
 
         # 2. Tính h_b
         if self.S and self.b and not self.hb:
             val = (2 * self.S) / self.b
-            return self._save("hb", "duong_cao", val, "h_b = 2S / b")
+            return self._save("hb", "duong_cao", val, "hb = 2S / b", ["S", "b"])
 
         # 3. Tính h_c
         if self.S and self.c and not self.hc:
             val = (2 * self.S) / self.c
-            return self._save("hc", "duong_cao", val, "h_c = 2S / c")
-
+            return self._save("hc", "duong_cao", val, "hc = 2S / c", ["S", "c"])
+        if self.debug:
+            print("Đã áp dụng công thức đường cao")
         return False
 
-    # Đường phân giác trong: l_a = (2bc * cos(A/2)) / (b+c)
+    # Đường phân giác trong: la = (2bc * cos(A/2)) / (b+c)
     def duong_phan_giac(self):
         v = self.quan_li_do_thi
 
         if self.b and self.c and self.A and not self.la:
             la_val = (2 * self.b * self.c * math.cos(math.radians(self.A / 2))) / (self.b + self.c)
-            return self._save("l_a", "phan_giac", la_val, "Công thức phân giác")
+            return self._save("la", "phan_giac", la_val, "Công thức phân giác", ["b", "c", "A"])
         if self.a and self.c and self.B and not self.lb:
             lb_val = (2 * self.a * self.c * math.cos(math.radians(self.B / 2))) / (self.a + self.c)
-            return self._save("l_b", "phan_giac", lb_val, "Công thức phân giác")
+            return self._save("lb", "phan_giac", lb_val, "Công thức phân giác", ["a", "c", "B"])
         if self.a and self.b and self.C and not self.lc:
             lc_val = (2 * self.a * self.b * math.cos(math.radians(self.C / 2))) / (self.a + self.b)
-            return self._save("l_c", "phan_giac", lc_val, "Công thức phân giác")
-        print("Đã áp dụng công thức đường phân giác")
+            return self._save("lc", "phan_giac", lc_val, "Công thức phân giác", ["a", "b", "C"])
+        if self.debug:
+            print("Đã áp dụng công thức đường phân giác")
+        return False
 
     # Tính chất đường phân giác (tỉ lệ đoạn thẳng trên cạnh đáy d_b, d_c)
     def ti_le_phan_giac(self):
@@ -445,7 +594,9 @@ class Rules:
             v.set("d_b", db_val)
             v.set("d_c", dc_val)
             return True
-        print("Đã áp dụng công thức Tam Giác Cân")
+        if self.debug:
+            print("Đã áp dụng công thức tỉ lệ đường phân giác")
+        return False
 
     def tam_ngoai_tiep(self):
         v = self.quan_li_do_thi
@@ -462,6 +613,8 @@ class Rules:
             
             v.set('posO', (ux, uy), "Công thức tọa độ tâm ngoại tiếp")
             return True
+        if self.debug:
+            print("Đã áp dụng công thức tính tâm ngoại tiếp")
         return False
     
     def tam_noi_tiep(self):
@@ -476,4 +629,6 @@ class Rules:
             
             v.set('posI', (ix, iy), "Công thức tọa độ tâm nội tiếp")
             return True
+        if self.debug:
+            print("Đã áp dụng công thức tính tâm nội tiếp")
         return False

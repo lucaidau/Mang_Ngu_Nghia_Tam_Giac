@@ -38,7 +38,7 @@ class GiaoDienChinh:
         container.pack(fill="both", expand=True)
 
         # --- CỘT TRÁI: INPUT ---
-        left_panel = tk.Frame(container, bg="#ffffff", width=320, padx=30, pady=30)
+        left_panel = tk.Frame(container, bg="#ffffff", width=300, padx=20, pady=20)
         left_panel.pack_propagate(False)
         left_panel.pack(side="left", fill="y", padx=10)
         
@@ -61,7 +61,7 @@ class GiaoDienChinh:
         ttk.Button(left_panel, text="Làm mới", style="Clear.TButton", command=self.clear).pack(fill="x", pady=5)
 
         # --- CỘT PHẢI: CÔNG THỨC
-        right_panel = tk.Frame(container, bg="#ffffff", width=350, padx=30, pady=30)
+        right_panel = tk.Frame(container, bg="#ffffff", width=400, padx=20, pady=20)
         right_panel.pack_propagate(False)
         right_panel.pack(side="right", fill="y", padx=10)
 
@@ -73,12 +73,33 @@ class GiaoDienChinh:
         formula_text.pack(fill="both", expand=True)
         
         formulas = [
-            "✨ Tổng 3 góc = 180°",
-            "✨ Định lý Sin: a/sinA = 2R",
-            "✨ Định lý Cosin: a² = b²+c²-2bc.cosA",
-            "✨ Công thức Heron cho diện tích",
-            "✨ Đường cao, Trung tuyến",
-            "✨ Bán kính nội/ngoại tiếp"
+            "--- Nhóm luật suy diễn hình học ---",
+            "1. Kiểm tra bất đẳng thức tam giác",
+            "2. Xác định Tam giác cân",
+            "3.Xác định Tam giác đều",
+            "4. Xác định Tam giác vuông",
+            "5. Xác định Tam giác tù / Tam giác nhọn",
+            "6. Xác định Tam giác vuông cân",
+            "--- Nhóm công thức giải tam giác cơ bản ---",
+            "7. Định lý Tổng ba góc trong một tam giác",
+            "8. Định lý Pytago",
+            "9. Định lý Sin",
+            "10. Định lý Cosin",
+            "--- Nhóm Công thức Diện tích và Chu vi ---",
+            "11. Công thức tính Chu vi",
+            "12. Công thức Heron",
+            "13. Diện tích qua bán kính đường tròn ngoại tiếp",
+            "14. Diện tích qua bán kính đường tròn nội tiếp",
+            "15. Diện tích qua Sin góc xen giữa",
+            "--- Nhóm Công thức Các đường đặc biệt ---",
+            "16. Công thức tính Đường cao",
+            "17. Công thức tính Đường trung tuyến",
+            "18. Công thức tính Đường phân giác trong",
+            "19. Định lý về tỉ lệ đoạn thẳng trên cạnh đáy của đường phân giác",
+            "--- Nhóm Công thức Tọa độ ---",
+            "20. Xác định tọa độ Tâm đường tròn ngoại tiếp",
+            "21. Xác định tọa độ Tâm đường tròn nội tiếp",
+
         ]
         for f in formulas: formula_text.insert(tk.END, f + "\n")
         formula_text.config(state="disabled")

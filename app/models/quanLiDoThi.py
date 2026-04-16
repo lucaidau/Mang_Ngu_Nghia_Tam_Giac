@@ -18,9 +18,7 @@ class QuanLiDoThi:
             print(f"Đã kết nối {u} và {v} với quan hệ: {quan_he}")
 
     # --- READ ---
-    def lay_do_thi(self):
-        return self.G
-
+    
     def get(self, ten_doi_tuong):
         if self.G.has_node(ten_doi_tuong):
             return self.G.nodes[ten_doi_tuong].get("gia_tri")
@@ -42,19 +40,3 @@ class QuanLiDoThi:
             )
             self.them_Doi_Tuong(ten, loai, {"gia_tri": gia_tri, "cong_thuc": cong_thuc})
         print(f"-> Đã ghi nhận: {ten} = {gia_tri} ({cong_thuc})")
-
-    # -- DELETE ---
-
-    def xoa_node(self, ten):
-        if self.G.has_node(ten):
-            self.G.remove_node(ten)
-            print(f"Log: Xóa Node {ten} thành công!")
-        else:
-            print(f"Lỗi: Node {ten} không tồn tại để xóa!")
-
-    def xoa_canh(self, u, v):
-        if self.G.has_edge(u, v):
-            self.G.remove_edge(u, v)
-            print(f"Log: Xóa quan hệ {u} và {v} thành công!")
-        else:
-            print(f"Lỗi: Quan hệ {u} và {v} không tồn tại!")
