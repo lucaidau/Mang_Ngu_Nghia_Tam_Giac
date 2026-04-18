@@ -154,13 +154,24 @@ class Controller:
         if not G.nodes():
             return
 
-        fig, ax = plt.subplots(figsize=(14, 9))
-        fig.patch.set_facecolor("#0d1117")
+        import tkinter as tk
+        from matplotlib.figure import Figure
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+        import matplotlib.patches as mpatches
+
+        # Tạo cửa sổ Toplevel thay vì plt.show() để tránh conflict với tkinter mainloop
+        top = tk.Toplevel()
+        top.title("Mạng Ngữ Nghĩa Tam Giác")
+        top.geometry("1100x750")
+        top.configure(bg="#0d1117")
+
+        fig = Figure(figsize=(13, 8), facecolor="#0d1117")
+        ax  = fig.add_subplot(111)
         ax.set_facecolor("#0d1117")
 
         pos = nx.spring_layout(G, k=5.0, iterations=100, seed=50)
 
-        # Node labels with values
+        # Node labels
         labels = {}
         for node, attr in G.nodes(data=True):
             val = attr.get("gia_tri")
@@ -169,38 +180,42 @@ class Controller:
             else:
                 labels[node] = node
 
-        # Color map by type
+        # Color map
         side_keys   = {"a", "b", "c"}
         angle_keys  = {"A", "B", "C"}
         radius_keys = {"R", "r"}
         area_keys   = {"S", "P"}
-        
+
         color_map = []
-        for node, attr in G.nodes(data=True):
-            if node in side_keys:
-                color_map.append("#58a6ff")   # blue – sides
-            elif node in angle_keys:
-                color_map.append("#3fb950")   # green – angles
-            elif node in radius_keys:
-                color_map.append("#f78166")   # red – radii
-            elif node in area_keys:
-                color_map.append("#d2a8ff")   # purple – area/perimeter
-            else:
-                color_map.append("#ffd700")   # gold – special lines
+        for node in G.nodes():
+            if node in side_keys:        color_map.append("#58a6ff")
+            elif node in angle_keys:     color_map.append("#3fb950")
+            elif node in radius_keys:    color_map.append("#f78166")
+            elif node in area_keys:      color_map.append("#d2a8ff")
+            else:                        color_map.append("#ffd700")
 
         nx.draw_networkx_nodes(G, pos, node_color=color_map,
                                node_size=3200, ax=ax, alpha=0.95)
         nx.draw_networkx_labels(G, pos, labels=labels,
                                 font_size=8, font_weight="bold",
                                 font_color="#0d1117", ax=ax)
-        nx.draw_networkx_edges(G, pos, edge_color="#30363d",
-                               width=2, ax=ax, alpha=0.8)
-
+        nx.draw_networkx_edges(G, pos, edge_color="#58a6ff",
+                               width=1.5, ax=ax, alpha=0.35)
         edge_labels = nx.get_edge_attributes(G, "relation")
-        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels,
-                                     font_size=7, font_color="#8b949e", ax=ax)
+        nx.draw_networkx_edge_labels(
+            G, pos,
+            edge_labels=edge_labels,
+            font_size=7,
+            font_color="#ffd700",
+            bbox=dict(
+                boxstyle="round,pad=0.25",
+                facecolor="#1c2128",
+                edgecolor="#30363d",
+                alpha=0.85,
+            ),
+            ax=ax,
+        )
 
-        # Legend
         legend_items = [
             mpatches.Patch(color="#58a6ff", label="Cạnh (a, b, c)"),
             mpatches.Patch(color="#3fb950", label="Góc (A, B, C)"),
@@ -211,10 +226,18 @@ class Controller:
         ax.legend(handles=legend_items, loc="upper left",
                   facecolor="#161b22", edgecolor="#30363d",
                   labelcolor="white", fontsize=9)
-
         ax.set_title("MẠNG NGỮ NGHĨA TAM GIÁC",
                      color="#58a6ff", fontsize=14, fontweight="bold",
                      fontfamily="monospace", pad=16)
         ax.axis("off")
-        plt.tight_layout()
-        plt.show()
+        fig.tight_layout()
+
+        # Nhúng figure vào cửa sổ tkinter — không dùng plt.show()
+        canvas = FigureCanvasTkAgg(fig, master=top)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
+
+        # Nút đóng
+        tk.Button(top, text="✕  Đóng", font=("Courier New", 10, "bold"),
+                  bg="#f78166", fg="#0d1117", relief="flat", padx=16, pady=6,
+                  cursor="hand2", command=top.destroy).pack(pady=(0, 10))
