@@ -504,6 +504,13 @@ class GiaoDienChinh:
             messagebox.showwarning("Thông báo", "Vui lòng nhập ít nhất một vài dữ kiện!")
             return
 
+        is_validate, err_msg = self._validate_inputs(inputs)
+
+        if not is_validate:
+            messagebox.showerror("Dữ liệu không hợp lệ: ", err_msg)
+            self._set_status("● Lỗi dữ liệu ", self.C["accent3"])
+            return
+
         self._set_status("● Đang giải...", self.C["accent"])
         self.window.update_idletasks()
 
@@ -533,6 +540,29 @@ class GiaoDienChinh:
                 self._set_status("● Lỗi", self.C["accent3"])
         else:
             messagebox.showwarning("Thông báo", "Chưa kết nối controller!")
+
+    def _validate_inputs(self, inputs):
+        try:
+            data = {k: float(v) for k, v in inputs.items()}
+            for k,v in data.items():
+                if v <= 0:
+                    return False, f"Giá trị của {k} phải lớn hơn 0!!"
+            angles = [data[k] for k in ['A', 'B', 'C'] if k in data]
+            if len(angles) == 3 and not math.isclose(sum(angles), 180,  rel_tol=1e-5):
+                return False, f"Tổng 3 góc phải nhỏ hơn 180°!!"
+            
+            for angle in angles:
+                if angle >= 180:
+                    return False, f"Góc phải nhỏ hơn 180°!!"
+            sides = [data[k] for k in ['a', 'b', 'c'] if k in data]
+            if len(sides) == 3:
+                s = sorted(sides)
+                if s[0] + s[1] <= s[2]:
+                    return False, "Vi phạm bất đẳng thức tam giác: Tổng 2 cạnh phải lớn hơn cạnh còn lại!!"
+            return True,""
+        except ValueError:
+            return False, "Dữ liệu nhập phải là một con số!!"
+
 
     def hien_thi_ket_qua(self, ket_qua, vet_suy_dien):
         C = self.C
