@@ -41,6 +41,10 @@ class Controller:
         print("--- Đang thực hiện suy diễn ---")
         self.rules.execute_alt()
 
+    def lay_loi(self) -> list:
+        """Trả về danh sách lỗi từ bộ quy tắc (nếu có)"""
+        return self.rules.error if self.rules.error else []
+
     def lay_ket_qua_dinh_dang(self) -> str:
         """Lấy danh sách các giá trị tìm được, nhóm theo loại"""
         graph = self.qldt.lay_do_thi()
