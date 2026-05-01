@@ -9,30 +9,30 @@ class GiaoDienChinh:
 
         self.window.title("Triangle Expert System")
         self.window.geometry("1400x900")
-        self.window.configure(bg="#0d1117")
+        self.window.configure(bg="#f5f6fa")
         self.window.resizable(True, True)
 
         self.entries = {}
         self.anim_step = 0
         self.pulse_job = None
 
-        # Color palette
+        # Color palette — LIGHT THEME
         self.C = {
-            "bg":        "#0d1117",
-            "panel":     "#161b22",
-            "panel2":    "#1c2128",
-            "border":    "#30363d",
-            "accent":    "#58a6ff",
-            "accent2":   "#3fb950",
-            "accent3":   "#f78166",
-            "accent4":   "#d2a8ff",
-            "text":      "#e6edf3",
-            "muted":     "#8b949e",
-            "hover":     "#21262d",
-            "input_bg":  "#0d1117",
-            "tag_side":  "#1f3a5f",
-            "tag_angle": "#1f3d2a",
-            "tag_other": "#3d2a1f",
+            "bg":        "#f5f6fa",
+            "panel":     "#ffffff",
+            "panel2":    "#f0f4ff",
+            "border":    "#dde1e7",
+            "accent":    "#1a73e8",
+            "accent2":   "#2e7d32",
+            "accent3":   "#f57c00",
+            "accent4":   "#7b1fa2",
+            "text":      "#212121",
+            "muted":     "#888888",
+            "hover":     "#e8f0fe",
+            "input_bg":  "#fafafa",
+            "tag_side":  "#e8f0fe",
+            "tag_angle": "#e6f4ea",
+            "tag_other": "#fce8d5",
         }
 
         self.setup_styles()
@@ -47,27 +47,27 @@ class GiaoDienChinh:
 
         style.configure("Solve.TButton",
             font=("Courier New", 10, "bold"),
-            background=C["accent"], foreground="#0d1117", padding=12, relief="flat")
+            background="#111111", foreground="#4fc3f7", padding=12, relief="flat")
         style.map("Solve.TButton",
-            background=[('active', '#79c0ff'), ('pressed', '#388bfd')])
+            background=[('active', '#222222'), ('pressed', '#333333')])
 
         style.configure("Graph.TButton",
             font=("Courier New", 10, "bold"),
-            background=C["accent2"], foreground="#0d1117", padding=12, relief="flat")
+            background="#111111", foreground="#69f0ae", padding=12, relief="flat")
         style.map("Graph.TButton",
-            background=[('active', '#56d364'), ('pressed', '#2ea043')])
+            background=[('active', '#222222'), ('pressed', '#333333')])
 
         style.configure("Clear.TButton",
             font=("Courier New", 10, "bold"),
-            background=C["accent3"], foreground="#0d1117", padding=12, relief="flat")
+            background="#111111", foreground="#ffcc80", padding=12, relief="flat")
         style.map("Clear.TButton",
-            background=[('active', '#ff9492'), ('pressed', '#da3633')])
+            background=[('active', '#222222'), ('pressed', '#333333')])
 
         style.configure("Export.TButton",
             font=("Courier New", 10, "bold"),
-            background=C["accent4"], foreground="#0d1117", padding=12, relief="flat")
+            background="#111111", foreground="#ce93d8", padding=12, relief="flat")
         style.map("Export.TButton",
-            background=[('active', '#e2c5ff'), ('pressed', '#a371f7')])
+            background=[('active', '#222222'), ('pressed', '#333333')])
 
     def create_widgets(self):
         C = self.C
@@ -144,11 +144,11 @@ class GiaoDienChinh:
                            bg=C["input_bg"], fg=C["text"],
                            relief="flat", borderwidth=0,
                            insertbackground=C["accent"],
-                           selectbackground=C["accent"],
+                           selectbackground=C["tag_side"],
                            width=9)
             ent.pack(side="left", padx=(4, 0), ipady=4)
             ent.bind("<Return>", lambda e: self.handle_solve())
-            ent.bind("<FocusIn>",  lambda e, w=ent: w.config(bg="#1a2332"))
+            ent.bind("<FocusIn>",  lambda e, w=ent: w.config(bg=C["hover"]))
             ent.bind("<FocusOut>", lambda e, w=ent: w.config(bg=C["input_bg"]))
             self.entries[var] = ent
 
@@ -195,7 +195,7 @@ class GiaoDienChinh:
             b = tk.Button(tab_bar, text=tab_name,
                           font=("Courier New", 9, "bold"),
                           bg=C["accent"] if tab_id == "result" else C["border"],
-                          fg="#0d1117" if tab_id == "result" else C["muted"],
+                          fg="#ffffff" if tab_id == "result" else C["muted"],
                           relief="flat", padx=12, pady=5,
                           activebackground=C["hover"],
                           cursor="hand2",
@@ -203,14 +203,23 @@ class GiaoDienChinh:
             b.pack(side="left", padx=2)
             self.tab_btns[tab_id] = b
 
-        self.output = tk.Text(res_frame,
+        # Output text area + scrollbar  [FIX: scrollbar giờ được pack đúng]
+        output_frame = tk.Frame(res_frame, bg=C["panel"])
+        output_frame.pack(fill="both", expand=True, padx=10, pady=8)
+
+        sb = tk.Scrollbar(output_frame, bg=C["border"])
+        sb.pack(side="right", fill="y")
+
+        self.output = tk.Text(output_frame,
                               font=("Courier New", 10),
                               bg=C["input_bg"], fg=C["text"],
                               relief="flat", padx=16, pady=16,
                               insertbackground=C["accent"],
-                              selectbackground=C["accent"],
-                              spacing1=2, spacing3=4)
-        self.output.pack(fill="both", expand=True, padx=10, pady=8)
+                              selectbackground=C["tag_side"],
+                              spacing1=2, spacing3=4,
+                              yscrollcommand=sb.set)
+        self.output.pack(side="left", fill="both", expand=True)
+        sb.config(command=self.output.yview)
 
         # Tags for colored output
         self.output.tag_configure("header",   font=("Courier New", 11, "bold"), foreground=C["accent"])
@@ -221,9 +230,6 @@ class GiaoDienChinh:
         self.output.tag_configure("computed", foreground=C["accent4"])
         self.output.tag_configure("side_val", foreground=C["accent"])
         self.output.tag_configure("angle_val",foreground=C["accent2"])
-
-        sb = tk.Scrollbar(res_frame, command=self.output.yview, bg=C["border"])
-        self.output.config(yscrollcommand=sb.set)
 
         self._write_welcome()
 
@@ -292,7 +298,7 @@ class GiaoDienChinh:
                 "21. Tâm đường tròn nội tiếp",
             ]),
         ]
-        self.kb_rule_lines = {}  # map rule text -> line index
+        self.kb_rule_lines = {}
         line = 1
         for group_name, rules in groups:
             self.kb_text.insert(tk.END, f"\n▸ {group_name}\n", "group")
@@ -304,11 +310,12 @@ class GiaoDienChinh:
         self.kb_text.config(state="disabled")
 
     def _write_welcome(self):
+        # [FIX: bỏ msg = () gây lỗi, thay bằng chuỗi tiêu đề đúng]
         C = self.C
         self.output.config(state="normal")
         self.output.delete("1.0", tk.END)
-        msg = ()
-        self.output.insert(tk.END, msg, "header")
+        self.output.insert(tk.END, "  ▲ TRIANGLE EXPERT SYSTEM\n", "header")
+        self.output.insert(tk.END, "  ─────────────────────────────────────────────\n", "formula")
         self.output.insert(tk.END, "  Hệ thống chuyên gia giải tam giác dựa trên mạng ngữ nghĩa.\n", "formula")
         self.output.insert(tk.END, "  Nhập ít nhất 3 dữ kiện (cạnh/góc) rồi nhấn ⚡ Giải ngay.\n\n", "formula")
         self.output.insert(tk.END, "  Phím tắt: [Enter] trong ô nhập = Giải ngay\n", "formula")
@@ -317,13 +324,10 @@ class GiaoDienChinh:
     def _draw_placeholder_triangle(self):
         self.tri_canvas.delete("all")
         C = self.C
-        w, h = 400, 210
-        # Draw faint grid
         for i in range(0, 500, 30):
             self.tri_canvas.create_line(i, 0, i, 250, fill=C["border"], width=1)
         for i in range(0, 260, 30):
             self.tri_canvas.create_line(0, i, 500, i, fill=C["border"], width=1)
-        # Draw placeholder triangle
         pts = [200, 30, 80, 195, 320, 195]
         self.tri_canvas.create_polygon(pts, outline=C["border"], fill="", width=2, dash=(6, 4))
         self.tri_canvas.create_text(200, 18,  text="A", fill=C["muted"], font=("Courier New", 10, "bold"))
@@ -331,6 +335,18 @@ class GiaoDienChinh:
         self.tri_canvas.create_text(334, 205, text="C", fill=C["muted"], font=("Courier New", 10, "bold"))
         self.tri_canvas.create_text(200, 120, text="Nhập dữ liệu để xem hình",
                                     fill=C["muted"], font=("Courier New", 9))
+
+    def _compute_circumcenter(self, px, py):
+        """Tính circumcenter (tâm ngoại tiếp) đúng từ 3 đỉnh — FIX BUG tâm sai"""
+        ax, ay = px[0], py[0]
+        bx, by = px[1], py[1]
+        cx, cy = px[2], py[2]
+        D = 2 * (ax*(by - cy) + bx*(cy - ay) + cx*(ay - by))
+        if abs(D) < 1e-10:
+            return sum(px)/3, sum(py)/3  # fallback nếu 3 điểm thẳng hàng
+        ux = ((ax**2+ay**2)*(by-cy) + (bx**2+by**2)*(cy-ay) + (cx**2+cy**2)*(ay-by)) / D
+        uy = ((ax**2+ay**2)*(cx-bx) + (bx**2+by**2)*(ax-cx) + (cx**2+cy**2)*(bx-ax)) / D
+        return ux, uy
 
     def draw_triangle(self, a=None, b=None, c=None, A=None, B=None, C_angle=None,
                       S=None, R=None, r=None, tri_type=""):
@@ -348,19 +364,15 @@ class GiaoDienChinh:
         for i in range(0, ch + 30, 30):
             canvas.create_line(0, i, cw, i, fill=C["border"], width=1)
 
-        # Try to reconstruct triangle coordinates from sides a, b, c
         if a and b and c:
-            # Place B at origin, C at (a, 0), find A
             bx, by = 0.0, 0.0
             cx, cy = float(a), 0.0
-            # cos(B) from law of cosines: b²=a²+c²-2ac·cosB → cosB=(a²+c²-b²)/(2ac)
             cos_B = (a**2 + c**2 - b**2) / (2 * a * c)
             cos_B = max(-1, min(1, cos_B))
-            sin_B = math.sqrt(1 - cos_B**2)
+            sin_B = math.sqrt(max(0, 1 - cos_B**2))
             ax = c * cos_B
-            ay = -c * sin_B  # negative = upward in canvas
+            ay = -c * sin_B
 
-            # Scale & center
             all_x = [bx, cx, ax]
             all_y = [by, cy, ay]
             min_x, max_x = min(all_x), max(all_x)
@@ -368,74 +380,74 @@ class GiaoDienChinh:
             span_x = max_x - min_x or 1
             span_y = max_y - min_y or 1
 
-            margin = 48
+            margin = 52
             scale = min((cw - 2*margin) / span_x, (ch - 2*margin) / span_y)
 
             def tx(x): return margin + (x - min_x) * scale
-            def ty(y): return ch - margin - (y - min_y) * scale  # flip y
+            def ty(y): return ch - margin - (y - min_y) * scale
 
             px = [tx(bx), tx(cx), tx(ax)]
             py = [ty(by), ty(cy), ty(ay)]
-
-            # Glow effect (shadow)
-                        # Vẽ tam giác với glow effect (phiên bản tương thích Tkinter)
             pts_flat = [px[0], py[0], px[1], py[1], px[2], py[2]]
-            
-            # Glow ngoài
-            canvas.create_polygon(pts_flat, 
-                                  outline="#58a6ff", 
-                                  fill="", 
-                                  width=9)
 
-            canvas.create_polygon(pts_flat, 
-                                  outline="#58a6ff", 
-                                  fill="", 
-                                  width=6)
-            
-            # Thân tam giác
-            canvas.create_polygon(pts_flat, 
-                                  outline=C["accent"], 
-                                  fill="#58a6ff", 
-                                  width=3)
+            # Glow + thân tam giác
+            canvas.create_polygon(pts_flat, outline=C["accent"], fill="", width=9)
+            canvas.create_polygon(pts_flat, outline=C["accent"], fill="", width=6)
+            canvas.create_polygon(pts_flat, outline=C["accent"], fill=C["tag_side"], width=3)
 
-            # Circumscribed circle
+            # [FIX: Circumscribed circle dùng circumcenter đúng]
             if R:
                 r_px = R * scale
-                ox = sum(px) / 3; oy = sum(py) / 3
-                # better: compute real circumcenter
-                canvas.create_oval(ox - r_px, oy - r_px,
-                                   ox + r_px, oy + r_px,
-                                   outline="#f78166", width=1, dash=(4,4))
+                ocx, ocy = self._compute_circumcenter(px, py)
+                canvas.create_oval(ocx - r_px, ocy - r_px,
+                                   ocx + r_px, ocy + r_px,
+                                   outline=C["accent3"], width=1, dash=(4, 4))
 
             # Inscribed circle
             if r:
                 r_px = r * scale
-                # incenter
                 perimeter = a + b + c
                 ix_c = (a*ax + b*bx + c*cx) / perimeter
                 iy_c = (a*ay + b*by + c*cy) / perimeter
                 canvas.create_oval(tx(ix_c) - r_px, ty(iy_c) - r_px,
                                    tx(ix_c) + r_px, ty(iy_c) + r_px,
-                                   outline="#3fb950", width=1, dash=(3,3))
+                                   outline=C["accent2"], width=1, dash=(3, 3))
 
-            # Vertex labels with values
-            offsets = [(-16, 10), (10, 10), (0, -18)]
-            names = ["B", "C", "A"]
-            angles = [B, C_angle, A]
+            # [FIX: Nhãn đỉnh với offset rõ ràng để không bị che]
+            names  = ["B",      "C",       "A"]
+            angles = [B,        C_angle,   A]
+            # Offset từng đỉnh ra xa khỏi tâm tam giác
+            cx_tri = sum(px) / 3
+            cy_tri = sum(py) / 3
             for i, (name, ang) in enumerate(zip(names, angles)):
-                ox, oy = offsets[i]
+                dx = px[i] - cx_tri
+                dy = py[i] - cy_tri
+                dist = math.sqrt(dx**2 + dy**2) or 1
+                ox = dx / dist * 22  # đẩy ra 22px theo hướng từ tâm
+                oy = dy / dist * 22
                 lbl = f"{name}"
                 if ang: lbl += f"\n{ang:.1f}°"
                 canvas.create_text(px[i] + ox, py[i] + oy,
                                    text=lbl, fill=C["accent2"],
                                    font=("Courier New", 9, "bold"), justify="center")
 
-            # Side labels
+            # [FIX: Nhãn cạnh offset ra ngoài cạnh theo pháp tuyến ~14px]
             mids = [(0, 1, "a", a), (1, 2, "c", c), (0, 2, "b", b)]
             for i1, i2, name, val in mids:
                 mx = (px[i1] + px[i2]) / 2
                 my = (py[i1] + py[i2]) / 2
-                canvas.create_text(mx, my, text=f"{name}={val:.2f}",
+                # Pháp tuyến của cạnh, hướng ra ngoài tam giác
+                ex = px[i2] - px[i1]
+                ey = py[i2] - py[i1]
+                elen = math.sqrt(ex**2 + ey**2) or 1
+                nx = -ey / elen  # pháp tuyến
+                ny =  ex / elen
+                # Đảm bảo hướng ra khỏi centroid
+                if (nx*(mx - cx_tri) + ny*(my - cy_tri)) < 0:
+                    nx, ny = -nx, -ny
+                offset = 14
+                canvas.create_text(mx + nx*offset, my + ny*offset,
+                                   text=f"{name}={val:.2f}",
                                    fill=C["accent"],
                                    font=("Courier New", 8, "bold"))
 
@@ -456,7 +468,7 @@ class GiaoDienChinh:
         self.tab_var.set(tab_id)
         for tid, btn in self.tab_btns.items():
             if tid == tab_id:
-                btn.config(bg=C["accent"], fg="#0d1117")
+                btn.config(bg=C["accent"], fg="#ffffff")
             else:
                 btn.config(bg=C["border"], fg=C["muted"])
 
@@ -504,12 +516,26 @@ class GiaoDienChinh:
             messagebox.showwarning("Thông báo", "Vui lòng nhập ít nhất một vài dữ kiện!")
             return
 
+<<<<<<< HEAD
+        # [FIX: validate đầu vào âm tại View]
+        for key, val in inputs.items():
+            try:
+                if float(val) <= 0:
+                    messagebox.showwarning("Dữ liệu không hợp lệ",
+                        f"Giá trị '{key}' phải lớn hơn 0!")
+                    return
+            except ValueError:
+                messagebox.showwarning("Dữ liệu không hợp lệ",
+                    f"Giá trị '{key}' = '{val}' không phải số hợp lệ!")
+                return
+=======
         is_validate, err_msg = self._validate_inputs(inputs)
 
         if not is_validate:
             messagebox.showerror("Dữ liệu không hợp lệ: ", err_msg)
             self._set_status("● Lỗi dữ liệu ", self.C["accent3"])
             return
+>>>>>>> e9180d06941e72b81676fe8f159cb39de8b1a79e
 
         self._set_status("● Đang giải...", self.C["accent"])
         self.window.update_idletasks()
@@ -520,9 +546,19 @@ class GiaoDienChinh:
                 self.controller.nhap_du_lieu_ban_dau(inputs)
                 self.controller.thuc_thi_suy_dien()
 
+                # [FIX: Kiểm tra lỗi từ Model trước khi hiển thị kết quả]
+                loi = self.controller.lay_loi()
+                if loi:
+                    self._set_status("● Dữ liệu lỗi", self.C["accent3"])
+                    messagebox.showerror("Dữ liệu không hợp lệ", "\n".join(loi))
+                    return
+
                 ket_qua   = self.controller.lay_ket_qua_dinh_dang()
                 vet_suy   = self.controller.lay_vet_suy_dien_dinh_dang()
-                summary   = self.controller.lay_tom_tat()
+                # [FIX: safe call lay_tom_tat — giữ tab tóm tắt hoạt động]
+                summary = ""
+                if hasattr(self.controller, 'lay_tom_tat'):
+                    summary = self.controller.lay_tom_tat()
                 tri_data  = self.controller.lay_du_lieu_tam_giac()
                 tri_type  = self.controller.lay_loai_tam_giac()
 
@@ -614,11 +650,9 @@ class GiaoDienChinh:
             "sinC": "15. S = ½ab·sin(C)",
             "Tổng 3 góc": "7. Tổng ba góc = 180°",
         }
-        # Reset all to "rule"
         self.kb_text.tag_remove("active", "1.0", tk.END)
         for keyword, rule_text in rule_keywords.items():
             if keyword.lower() in vet_suy.lower():
-                # Find and highlight
                 start = "1.0"
                 while True:
                     pos = self.kb_text.search(rule_text, start, tk.END)
@@ -637,8 +671,8 @@ class GiaoDienChinh:
         self.output.delete("1.0", tk.END)
         self.output.config(state="disabled")
         self._draw_placeholder_triangle()
+        self.window.update_idletasks()  # [FIX: force canvas update ngay]
         self._set_status("● Sẵn sàng", self.C["accent2"])
-        # Reset KB highlights
         self.kb_text.config(state="normal")
         self.kb_text.tag_remove("active", "1.0", tk.END)
         self.kb_text.config(state="disabled")
@@ -646,7 +680,13 @@ class GiaoDienChinh:
             self.controller.reset()
 
     def handle_draw_graph(self):
+        # [FIX: báo lỗi nếu chưa có dữ liệu]
         if self.controller:
+            graph = self.controller.qldt.lay_do_thi()
+            if not graph.nodes():
+                messagebox.showwarning("Thông báo",
+                    "Chưa có dữ liệu để vẽ!\nVui lòng nhập dữ liệu và nhấn Giải ngay trước.")
+                return
             self.controller.ve_do_thi()
         else:
             messagebox.showwarning("Thông báo", "Chưa kết nối được với bộ xử lý đồ thị!")
