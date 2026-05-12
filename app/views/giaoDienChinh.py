@@ -518,14 +518,25 @@ class GiaoDienChinh:
 
         # [FIX: validate đầu vào âm tại View]
         for key, val in inputs.items():
+            if not val: continue
             try:
-                if float(val) <= 0:
+                num_val = float(val)
+                if float(num_val) <= 0:
                     messagebox.showwarning("Dữ liệu không hợp lệ",
                         f"Giá trị '{key}' phải lớn hơn 0!")
                     return
+                # if key in ['A','B','C'] and num_val >= 180:
+                #     messagebox.showwarning("Dữ liệu không hợp lệ",
+                #         f"Góc '{key}' phải nhỏ hơn 180 độ")
+                #     return
             except ValueError:
                 messagebox.showwarning("Dữ liệu không hợp lệ",
                     f"Giá trị '{key}' = '{val}' không phải số hợp lệ!")
+                return
+
+            is_valid, msg = self._validate_inputs(inputs)
+            if not is_valid:
+                messagebox.showwarning("Dữ liệu không hợp lệ", msg)
                 return
 
         self._set_status("● Đang giải...", self.C["accent"])

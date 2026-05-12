@@ -27,15 +27,6 @@ class Controller:
             except (ValueError, TypeError):
                 print(f"Cảnh báo: Giá trị '{value}' của {key} không hợp lệ.")
 
-    def validate_tam_giac(self, a, b, c, deg_A, deg_B, deg_C):
-        if any(val <= 0 for val in [a, b, c, deg_A, deg_B, deg_C]):
-            return False, "Các cạnh và góc phải lớn hơn 0"
-        if not math.isclose(deg_A + deg_B + deg_C, 180, rel_tol=1e-5):
-            return False, "Tổng 3 góc phải là 180 độ"
-        if not (a + b > c and a + c > b and b + c > a):
-            return False, "Vi phạm bất đẳng thức tam giác"
-        return True, "Hợp lệ"
-
     def thuc_thi_suy_dien(self):
         """Kích hoạt bộ quy tắc suy diễn"""
         print("--- Đang thực hiện suy diễn ---")
