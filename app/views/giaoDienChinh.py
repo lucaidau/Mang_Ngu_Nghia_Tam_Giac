@@ -516,7 +516,6 @@ class GiaoDienChinh:
             messagebox.showwarning("Thông báo", "Vui lòng nhập ít nhất một vài dữ kiện!")
             return
 
-<<<<<<< HEAD
         # [FIX: validate đầu vào âm tại View]
         for key, val in inputs.items():
             try:
@@ -528,14 +527,6 @@ class GiaoDienChinh:
                 messagebox.showwarning("Dữ liệu không hợp lệ",
                     f"Giá trị '{key}' = '{val}' không phải số hợp lệ!")
                 return
-=======
-        is_validate, err_msg = self._validate_inputs(inputs)
-
-        if not is_validate:
-            messagebox.showerror("Dữ liệu không hợp lệ: ", err_msg)
-            self._set_status("● Lỗi dữ liệu ", self.C["accent3"])
-            return
->>>>>>> e9180d06941e72b81676fe8f159cb39de8b1a79e
 
         self._set_status("● Đang giải...", self.C["accent"])
         self.window.update_idletasks()
